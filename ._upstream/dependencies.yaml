@@ -167,7 +167,11 @@ dependencies:
           - c-compiler
           - cxx-compiler
           - &cmake_ver cmake>=3.26.4,!=3.30.0
-          - librmm==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#           - librmm==25.10.*
+# =======
+          - librmm==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - ninja
       - output_types: [requirements, pyproject]
         packages:
@@ -243,8 +247,13 @@ dependencies:
           # These packages are useful for development but not otherwise required to build/run
           # RAPIDS
           - pip
-          - dask-cuda==25.10.*
-          - dask-cudf==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#           - dask-cuda==25.10.*
+#           - dask-cudf==25.10.*
+# =======
+          - dask-cuda==25.12.*,>=0.0.0a0
+          - dask-cudf==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           # UCX Build
           - libtool
           - automake
@@ -316,7 +325,11 @@ dependencies:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
-          - rapids-dask-dependency==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#           - rapids-dask-dependency==25.10.*
+# =======
+          - rapids-dask-dependency==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - pyyaml>=6
       - output_types: [conda]
         packages:
@@ -345,7 +358,11 @@ dependencies:
           - pytest
           - pytest-asyncio>=1.0.0
           - pytest-rerunfailures!=16.0.0  # See https://github.com/pytest-dev/pytest-rerunfailures/issues/302
-          - rapids-dask-dependency==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#           - rapids-dask-dependency==25.10.*
+# =======
+          - rapids-dask-dependency==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
   test_python_distributed_ucxx:
     common:
       - output_types: [conda, requirements, pyproject]
@@ -373,7 +390,11 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - &librmm_unsuffixed librmm==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#           - &librmm_unsuffixed librmm==25.10.*
+# =======
+          - &librmm_unsuffixed librmm==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -386,18 +407,30 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - librmm-cu12==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#               - librmm-cu12==25.10.*
+# =======
+              - librmm-cu12==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - librmm-cu13==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#               - librmm-cu13==25.10.*
+# =======
+              - librmm-cu13==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - {matrix: null, packages: [*librmm_unsuffixed]}
   depends_on_rmm:
     common:
       - output_types: conda
         packages:
-          - &rmm_unsuffixed rmm==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#           - &rmm_unsuffixed rmm==25.10.*
+# =======
+          - &rmm_unsuffixed rmm==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -410,18 +443,30 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - rmm-cu12==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#               - rmm-cu12==25.10.*
+# =======
+              - rmm-cu12==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - rmm-cu13==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#               - rmm-cu13==25.10.*
+# =======
+              - rmm-cu13==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - {matrix: null, packages: [*rmm_unsuffixed]}
   depends_on_cudf:
     common:
       - output_types: [conda]
         packages:
-          - &cudf_unsuffixed cudf==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#           - &cudf_unsuffixed cudf==25.10.*
+# =======
+          - &cudf_unsuffixed cudf==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -434,22 +479,38 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - cudf-cu12==25.10.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#               - cudf-cu12==25.10.*
+#           - matrix:
+#               cuda: "13.*"
+#             packages:
+#               - cudf-cu13==25.10.*
+# =======
+              - cudf-cu12==25.12.*,>=0.0.0a0
           - matrix:
               cuda: "13.*"
             packages:
-              - cudf-cu13==25.10.*
+              - cudf-cu13==25.12.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - {matrix: null, packages: [*cudf_unsuffixed]}
   depends_on_distributed_ucxx:
     common:
       - output_types: conda
         packages:
-          - distributed-ucxx==0.46.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#           - distributed-ucxx==0.46.*
+# =======
+          - distributed-ucxx==0.47.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
   depends_on_libucxx:
     common:
       - output_types: conda
         packages:
-          - &libucxx_unsuffixed libucxx==0.46.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#           - &libucxx_unsuffixed libucxx==0.46.*
+# =======
+          - &libucxx_unsuffixed libucxx==0.47.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
     specific:
       - output_types: [requirements, pyproject]
         matrices:
@@ -457,12 +518,20 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - libucxx-cu12==0.46.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#               - libucxx-cu12==0.46.*
+# =======
+              - libucxx-cu12==0.47.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - libucxx-cu13==0.46.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#               - libucxx-cu13==0.46.*
+# =======
+              - libucxx-cu13==0.47.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - matrix:
             packages:
               - *libucxx_unsuffixed
@@ -470,17 +539,21 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - libucxx-examples==0.46.*,>=0.0.0a0
+          - libucxx-examples==0.47.*,>=0.0.0a0
   depends_on_libucxx_tests:
     common:
       - output_types: conda
         packages:
-          - libucxx-tests==0.46.*,>=0.0.0a0
+          - libucxx-tests==0.47.*,>=0.0.0a0
   depends_on_ucxx:
     common:
       - output_types: conda
         packages:
-          - &ucxx_unsuffixed ucxx==0.46.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#           - &ucxx_unsuffixed ucxx==0.46.*
+# =======
+          - &ucxx_unsuffixed ucxx==0.47.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -493,18 +566,26 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-              - ucxx-cu12==0.46.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#               - ucxx-cu12==0.46.*
+# =======
+              - ucxx-cu12==0.47.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-              - ucxx-cu13==0.46.*
+# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+#               - ucxx-cu13==0.46.*
+# =======
+              - ucxx-cu13==0.47.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (cbe515cd)
           - {matrix: null, packages: [*ucxx_unsuffixed]}
   depends_on_ucxx_tests:
     common:
       - output_types: conda
         packages:
-          - ucxx-tests==0.46.*,>=0.0.0a0
+          - ucxx-tests==0.47.*,>=0.0.0a0
   depends_on_ucx_build:
     common:
       - output_types: requirements
