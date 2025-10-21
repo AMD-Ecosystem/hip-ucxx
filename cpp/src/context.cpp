@@ -1,13 +1,19 @@
 /**
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES.
- * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
- * SPDX-License-Identifier: BSD-3-Clause AND MIT
+// <<<<<<< OLD CODE from 06fe0cb6 (c1e6a4a1) - COMMENTED OUT
+//  * SPDX-FileCopyrightText: Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES.
+//  * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+//  * SPDX-License-Identifier: BSD-3-Clause AND MIT
+// =======
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+ * SPDX-License-Identifier: BSD-3-Clause
+// >>>>>>> END NEW CODE (c1e6a4a1)
  */
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ucxx/context.h>
