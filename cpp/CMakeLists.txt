@@ -1,7 +1,13 @@
 # =================================================================================
+# cmake-format: off
 # SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# SPDX-License-Identifier: BSD-3-Clause AND MIT
+# <<<<<<< OLD CODE from 538d7976 (f13787d6) - COMMENTED OUT
+# # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# # SPDX-License-Identifier: BSD-3-Clause AND MIT
+# =======
+# SPDX-License-Identifier: BSD-3-Clause
+# cmake-format: on
+# >>>>>>> END NEW CODE (f13787d6)
 # =================================================================================
 cmake_minimum_required(VERSION 3.30.4 FATAL_ERROR)
 
