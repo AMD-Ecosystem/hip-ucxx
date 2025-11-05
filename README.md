@@ -17,23 +17,27 @@ For full documentation, see the
 ## Directory layout
 
 ```
-hip-ucxx/
-├── cpp/                  C++ library
-│   ├── include/ucxx/       Public headers
-│   ├── src/                Implementation
-│   ├── tests/              C++ tests
-│   ├── benchmarks/         C++ benchmarks
-│   ├── examples/           C++ examples (basic client/server)
-│   └── python/             C++ sources for Python bindings
-├── python/               Python packages
-│   ├── ucxx/               Core Python module (ucxx.core, ucxx._lib_async)
-│   ├── libucxx/            Python wrapper that loads the C++ shared library
-│   └── distributed-ucxx/   Dask Distributed communication backend
-├── docs_amd/             Sphinx documentation source
-├── cmake/                CMake helper modules
-├── scripts/              Utility scripts (SPDX checks)
-├── build.hip.sh          Build script for C++ and Python components
-└── run.hip.sh            Run script for tests, benchmarks, and examples
+# <<<<<<< OLD CODE from 111cd83a (0efb5dc6) - COMMENTED OUT
+# hip-ucxx/
+# ├── cpp/                  C++ library
+# │   ├── include/ucxx/       Public headers
+# │   ├── src/                Implementation
+# │   ├── tests/              C++ tests
+# │   ├── benchmarks/         C++ benchmarks
+# │   ├── examples/           C++ examples (basic client/server)
+# │   └── python/             C++ sources for Python bindings
+# ├── python/               Python packages
+# │   ├── ucxx/               Core Python module (ucxx.core, ucxx._lib_async)
+# │   ├── libucxx/            Python wrapper that loads the C++ shared library
+# │   └── distributed-ucxx/   Dask Distributed communication backend
+# ├── docs_amd/             Sphinx documentation source
+# ├── cmake/                CMake helper modules
+# ├── scripts/              Utility scripts (SPDX checks)
+# ├── build.hip.sh          Build script for C++ and Python components
+# └── run.hip.sh            Run script for tests, benchmarks, and examples
+# =======
+$ conda env create -n ucxx -f conda/environments/all_cuda-130_arch-$(uname -m).yaml
+# >>>>>>> END NEW CODE (0efb5dc6)
 ```
 
 ## Environment setup
@@ -54,6 +58,12 @@ conda activate hip-ucxx
 python3 -m venv hip-ucxx-env
 source hip-ucxx-env/bin/activate
 ```
+$ mamba env create -n ucxx -f conda/environments/all_cuda-130_arch-$(uname -m).yaml
+$ conda activate ucxx
+```
+
+### Convenience Script
+# >>>>>>> END NEW CODE (0efb5dc6)
 
 For installing pre-built packages via AMD PyPI, see the
 [installation guide](https://rocm.docs.amd.com/projects/hip-ucxx/en/latest/install/install.html).
