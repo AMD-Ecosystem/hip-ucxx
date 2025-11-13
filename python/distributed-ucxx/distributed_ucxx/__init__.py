@@ -5,14 +5,23 @@
 from .ucxx import (
     UCXXBackend,
     UCXXBackendLegacyPrefix,
-)  # noqa: F401
+)
 
 
 from ._version import __git_commit__, __version__
 
-try:
-    import numba.hip
-
-    numba.hip.pose_as_cuda()
-except ModuleNotFoundError:
-    pass
+# <<<<<<< OLD CODE from 3d921044 (fefe8aa4) - COMMENTED OUT
+# try:
+#     import numba.hip
+#
+#     numba.hip.pose_as_cuda()
+# except ModuleNotFoundError:
+#     pass
+# =======
+__all__ = [
+    "UCXXBackend",
+    "UCXXBackendLegacyPrefix",
+    "__git_commit__",
+    "__version__",
+]
+# >>>>>>> END NEW CODE (fefe8aa4)
