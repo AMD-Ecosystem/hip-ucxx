@@ -13,25 +13,33 @@ dependencies:
 - cuda-cudart-dev
 - cuda-nvcc
 - cuda-version=12.9
-# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# - cudf==25.10.*
-# - cupy>=13.6.0
-# - cxx-compiler
-# - cython>=3.0.0
-# - dask-cuda==25.10.*
-# - dask-cudf==25.10.*
-# - doxygen=1.9.1
-# - librmm==25.10.*
+# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # - cudf==25.10.*
+# # - cupy>=13.6.0
+# # - cxx-compiler
+# # - cython>=3.0.0
+# # - dask-cuda==25.10.*
+# # - dask-cudf==25.10.*
+# # - doxygen=1.9.1
+# # - librmm==25.10.*
+# # =======
+# - cudf==25.12.*,>=0.0.0a0
 # =======
-- cudf==25.12.*,>=0.0.0a0
+- cudf==26.2.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (f7c03f69)
 - cupy>=13.6.0
 - cxx-compiler
 - cython>=3.0.0,<3.2.0a0
-- dask-cuda==25.12.*,>=0.0.0a0
-- dask-cudf==25.12.*,>=0.0.0a0
+- dask-cuda==26.2.*,>=0.0.0a0
+- dask-cudf==26.2.*,>=0.0.0a0
 - doxygen=1.9.1
-- librmm==25.12.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (cbe515cd)
+# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# - librmm==25.12.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (cbe515cd)
+# =======
+- librmm==26.2.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (f7c03f69)
 - libtool
 - make
 - ninja
@@ -48,13 +56,18 @@ dependencies:
 - python>=3.10,<3.14
 - pyyaml>=6
 - rapids-build-backend>=0.4.0,<0.5.0.dev0
-# <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# - rapids-dask-dependency==25.10.*
-# - rmm==25.10.*
+# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # - rapids-dask-dependency==25.10.*
+# # - rmm==25.10.*
+# # =======
+# - rapids-dask-dependency==25.12.*,>=0.0.0a0
+# - rmm==25.12.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (cbe515cd)
 # =======
-- rapids-dask-dependency==25.12.*,>=0.0.0a0
-- rmm==25.12.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (cbe515cd)
+- rapids-dask-dependency==26.2.*,>=0.0.0a0
+- rmm==26.2.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (f7c03f69)
 - scikit-build-core>=0.10.0
 - setuptools>=64.0.0
 - sphinx>=8.1.0
