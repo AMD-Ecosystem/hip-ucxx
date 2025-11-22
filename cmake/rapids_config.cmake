@@ -56,3 +56,6 @@ if(NOT rapids-cmake-branch)
 endif()
 # >>>>>>> END NEW CODE (dfc637ef)
 include("${CMAKE_CURRENT_LIST_DIR}/RAPIDS.cmake")
+
+# Don't use sccache-dist for CMake's compiler tests
+set(ENV{SCCACHE_NO_DIST_COMPILE} "1")
