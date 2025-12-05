@@ -30,7 +30,7 @@ dependencies:
 # >>>>>>> END NEW CODE (f7c03f69)
 - cupy>=13.6.0
 - cxx-compiler
-- cython>=3.0.0,<3.2.0a0
+- cython>=3.0.0,<3.2.0
 - dask-cuda==26.2.*,>=0.0.0a0
 - dask-cudf==26.2.*,>=0.0.0a0
 - doxygen=1.9.1
@@ -43,8 +43,8 @@ dependencies:
 - libtool
 - make
 - ninja
-- numba-cuda>=0.19.1,<0.20.0a0
-- numpy>=1.23,<3.0a0
+- numba-cuda>=0.19.1,<0.20.0
+- numpy>=1.23,<3.0
 - nvidia-ml-py>=12
 - pip
 - pkg-config
@@ -52,19 +52,23 @@ dependencies:
 - pydata-sphinx-theme>=0.15.4
 - pytest-asyncio>=1.0.0
 - pytest-rerunfailures!=16.0.0
-- pytest<9.0.0a0
+- pytest<9.0.0
 - python>=3.10,<3.14
 - pyyaml>=6
-- rapids-build-backend>=0.4.0,<0.5.0.dev0
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# # - rapids-dask-dependency==25.10.*
-# # - rmm==25.10.*
+# <<<<<<< OLD CODE from c8188997 (400b6ac5) - COMMENTED OUT
+# - rapids-build-backend>=0.4.0,<0.5.0.dev0
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # # - rapids-dask-dependency==25.10.*
+# # # - rmm==25.10.*
+# # # =======
+# # - rapids-dask-dependency==25.12.*,>=0.0.0a0
+# # - rmm==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-# - rapids-dask-dependency==25.12.*,>=0.0.0a0
-# - rmm==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
 # =======
+- rapids-build-backend>=0.4.0,<0.5.0
+# >>>>>>> END NEW CODE (400b6ac5)
 - rapids-dask-dependency==26.2.*,>=0.0.0a0
 - rmm==26.2.*,>=0.0.0a0
 # >>>>>>> END NEW CODE (f7c03f69)
