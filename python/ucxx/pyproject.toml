@@ -36,12 +36,16 @@ dependencies = [
 #     "libucxx==0.47.*,>=0.0.0a0",
 # =======
     "libucxx==0.48.*,>=0.0.0a0",
-# <<<<<<< OLD CODE from c8188997 (400b6ac5) - COMMENTED OUT
-# # >>>>>>> END NEW CODE (f7c03f69)
-#     "numba-cuda[cu13]>=0.19.1,<0.20.0a0",
-#     "numpy>=1.23,<3.0a0",
+# <<<<<<< OLD CODE from 025d5ce7 (ae0b7c11) - COMMENTED OUT
+# # <<<<<<< OLD CODE from c8188997 (400b6ac5) - COMMENTED OUT
+# # # >>>>>>> END NEW CODE (f7c03f69)
+# #     "numba-cuda[cu13]>=0.19.1,<0.20.0a0",
+# #     "numpy>=1.23,<3.0a0",
+# # =======
+#     "numba-cuda[cu13]>=0.19.1,<0.20.0",
 # =======
-    "numba-cuda[cu13]>=0.19.1,<0.20.0",
+    "numba-cuda[cu13]>=0.22.1,<0.23.0",
+# >>>>>>> END NEW CODE (ae0b7c11)
     "numpy>=1.23,<3.0",
 # >>>>>>> END NEW CODE (400b6ac5)
     "nvidia-ml-py>=12",

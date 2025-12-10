@@ -28,11 +28,15 @@ license = "BSD-3-Clause AND MIT"
 license-files = ["LICENSE", "NOTICE.txt"]
 requires-python = ">=3.10"
 dependencies = [
-# <<<<<<< OLD CODE from c8188997 (400b6ac5) - COMMENTED OUT
-#     "numba-hip",
+# <<<<<<< OLD CODE from 025d5ce7 (ae0b7c11) - COMMENTED OUT
+# # <<<<<<< OLD CODE from c8188997 (400b6ac5) - COMMENTED OUT
+# #     "numba-hip",
+# # =======
+#     "numba-cuda[cu13]>=0.19.1,<0.20.0",
+# # >>>>>>> END NEW CODE (400b6ac5)
 # =======
-    "numba-cuda[cu13]>=0.19.1,<0.20.0",
-# >>>>>>> END NEW CODE (400b6ac5)
+    "numba-cuda[cu13]>=0.22.1,<0.23.0",
+# >>>>>>> END NEW CODE (ae0b7c11)
     "pyyaml>=6",
 # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
 # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
