@@ -1,43 +1,58 @@
-# hip-ucxx
+# <<<<<<< OLD CODE from 3b81cb58 (3e12b184) - COMMENTED OUT
+# # hip-ucxx
+#
+# hip-ucxx is an object-oriented C++ interface for [UCX](https://www.openucx.org/),
+# with native Python bindings, designed for GPU-direct communication on AMD GPUs
+# using HIP/ROCm. It is derived from the
+# [UCXX](https://github.com/rapidsai/ucxx) project by NVIDIA Corporation
+# and is part of the [ROCm-DS](https://github.com/ROCm-DS) ecosystem.
+#
+# hip-ucxx supports multiple transport methods including tag matching, active
+# messages, and stream-based communication over InfiniBand, ROCm-IPC/XGMI, shared
+# memory, and TCP. It also provides a Dask Distributed communication backend for
+# GPU-accelerated distributed computing.
+#
+# For full documentation, see the
+# [hip-ucxx documentation](https://rocm.docs.amd.com/projects/hip-ucxx/en/latest/).
+#
+# ## Directory layout
+#
+# ```
+# # <<<<<<< OLD CODE from 111cd83a (0efb5dc6) - COMMENTED OUT
+# # hip-ucxx/
+# # ├── cpp/                  C++ library
+# # │   ├── include/ucxx/       Public headers
+# # │   ├── src/                Implementation
+# # │   ├── tests/              C++ tests
+# # │   ├── benchmarks/         C++ benchmarks
+# # │   ├── examples/           C++ examples (basic client/server)
+# # │   └── python/             C++ sources for Python bindings
+# # ├── python/               Python packages
+# # │   ├── ucxx/               Core Python module (ucxx.core, ucxx._lib_async)
+# # │   ├── libucxx/            Python wrapper that loads the C++ shared library
+# # │   └── distributed-ucxx/   Dask Distributed communication backend
+# # ├── docs_amd/             Sphinx documentation source
+# # ├── cmake/                CMake helper modules
+# # ├── scripts/              Utility scripts (SPDX checks)
+# # ├── build.hip.sh          Build script for C++ and Python components
+# # └── run.hip.sh            Run script for tests, benchmarks, and examples
+# # =======
+# $ conda env create -n ucxx -f conda/environments/all_cuda-130_arch-$(uname -m).yaml
+# # >>>>>>> END NEW CODE (0efb5dc6)
+# =======
+# UCXX
 
-hip-ucxx is an object-oriented C++ interface for [UCX](https://www.openucx.org/),
-with native Python bindings, designed for GPU-direct communication on AMD GPUs
-using HIP/ROCm. It is derived from the
-[UCXX](https://github.com/rapidsai/ucxx) project by NVIDIA Corporation
-and is part of the [AMD Data Science](https://github.com/AMD-Ecosystem/ROCm-DS) ecosystem.
+UCXX is an object-oriented C++ interface for UCX, with native support for Python bindings.
 
-hip-ucxx supports multiple transport methods including tag matching, active
-messages, and stream-based communication over InfiniBand, ROCm-IPC/XGMI, shared
-memory, and TCP. It also provides a Dask Distributed communication backend for
-GPU-accelerated distributed computing.
+## Building
 
-For full documentation, see the
-[hip-ucxx documentation](https://rocm.docs.amd.com/projects/hip-ucxx/en/latest/).
+### Environment setup
 
-## Directory layout
+Before starting it is necessary to have the necessary dependencies installed. The simplest way to get started is to install [Miniforge](https://github.com/conda-forge/miniforge) and then to create and activate an environment with the provided development file, for CUDA 13.x:
 
 ```
-# <<<<<<< OLD CODE from 111cd83a (0efb5dc6) - COMMENTED OUT
-# hip-ucxx/
-# ├── cpp/                  C++ library
-# │   ├── include/ucxx/       Public headers
-# │   ├── src/                Implementation
-# │   ├── tests/              C++ tests
-# │   ├── benchmarks/         C++ benchmarks
-# │   ├── examples/           C++ examples (basic client/server)
-# │   └── python/             C++ sources for Python bindings
-# ├── python/               Python packages
-# │   ├── ucxx/               Core Python module (ucxx.core, ucxx._lib_async)
-# │   ├── libucxx/            Python wrapper that loads the C++ shared library
-# │   └── distributed-ucxx/   Dask Distributed communication backend
-# ├── docs_amd/             Sphinx documentation source
-# ├── cmake/                CMake helper modules
-# ├── scripts/              Utility scripts (SPDX checks)
-# ├── build.hip.sh          Build script for C++ and Python components
-# └── run.hip.sh            Run script for tests, benchmarks, and examples
-# =======
-$ conda env create -n ucxx -f conda/environments/all_cuda-130_arch-$(uname -m).yaml
-# >>>>>>> END NEW CODE (0efb5dc6)
+$ conda env create -n ucxx -f conda/environments/all_cuda-131_arch-$(uname -m).yaml
+# >>>>>>> END NEW CODE (3e12b184)
 ```
 
 ## Environment setup
@@ -58,7 +73,7 @@ conda activate hip-ucxx
 python3 -m venv hip-ucxx-env
 source hip-ucxx-env/bin/activate
 ```
-$ mamba env create -n ucxx -f conda/environments/all_cuda-130_arch-$(uname -m).yaml
+$ mamba env create -n ucxx -f conda/environments/all_cuda-131_arch-$(uname -m).yaml
 $ conda activate ucxx
 ```
 
