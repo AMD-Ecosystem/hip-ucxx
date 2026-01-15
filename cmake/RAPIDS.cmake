@@ -53,20 +53,24 @@ if(NOT rapids-cmake-branch)
 #   set(rapids-cmake-sha $ENV{RAPIDS_CMAKE_SHA})
 # =======
   # Define a default branch if the user doesn't set one
-# <<<<<<< OLD CODE from 0d8a05d5 (053ff54a) - COMMENTED OUT
-# # <<<<<<< OLD CODE from ce52641f (8fef0088) - COMMENTED OUT
-# # # <<<<<<< OLD CODE from 648b6351 (7acd222c) - COMMENTED OUT
-# # #   set(rapids-cmake-branch "main")
-# # # # >>>>>>> END NEW CODE (1dc8822d)
+# <<<<<<< OLD CODE from ef7a9d95 (2e3ce967) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 0d8a05d5 (053ff54a) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from ce52641f (8fef0088) - COMMENTED OUT
+# # # # <<<<<<< OLD CODE from 648b6351 (7acd222c) - COMMENTED OUT
+# # # #   set(rapids-cmake-branch "main")
+# # # # # >>>>>>> END NEW CODE (1dc8822d)
+# # # # =======
+# # #   set(rapids-cmake-branch "release/${rapids-cmake-version}")
+# # # # >>>>>>> END NEW CODE (7acd222c)
 # # # =======
-# #   set(rapids-cmake-branch "release/${rapids-cmake-version}")
-# # # >>>>>>> END NEW CODE (7acd222c)
+# #   set(rapids-cmake-branch "main")
+# # # >>>>>>> END NEW CODE (8fef0088)
 # # =======
-#   set(rapids-cmake-branch "main")
-# # >>>>>>> END NEW CODE (8fef0088)
+#   set(rapids-cmake-branch "release/${rapids-cmake-version}")
+# # >>>>>>> END NEW CODE (053ff54a)
 # =======
-  set(rapids-cmake-branch "release/${rapids-cmake-version}")
-# >>>>>>> END NEW CODE (053ff54a)
+  set(rapids-cmake-branch "main")
+# >>>>>>> END NEW CODE (2e3ce967)
 endif()
 
 # Allow users to control the exact URL passed to FetchContent
