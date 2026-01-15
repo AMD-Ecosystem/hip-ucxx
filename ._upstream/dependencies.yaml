@@ -170,15 +170,19 @@ dependencies:
           - c-compiler
           - cxx-compiler
           - &cmake_ver cmake>=3.26.4,!=3.30.0
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #           - librmm==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #           - librmm==25.10.*
+# # # =======
+# #           - librmm==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#           - librmm==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#           - librmm==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-          - librmm==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+          - librmm==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - ninja
       - output_types: [requirements, pyproject]
         packages:
@@ -254,18 +258,23 @@ dependencies:
           # These packages are useful for development but not otherwise required to build/run
           # RAPIDS
           - pip
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #           - dask-cuda==25.10.*
-# #           - dask-cudf==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #           - dask-cuda==25.10.*
+# # #           - dask-cudf==25.10.*
+# # # =======
+# #           - dask-cuda==25.12.*,>=0.0.0a0
+# #           - dask-cudf==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#           - dask-cuda==25.12.*,>=0.0.0a0
-#           - dask-cudf==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#           - dask-cuda==26.2.*,>=0.0.0a0
+#           - dask-cudf==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-          - dask-cuda==26.2.*,>=0.0.0a0
-          - dask-cudf==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+          - dask-cuda==26.4.*,>=0.0.0a0
+          - dask-cudf==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           # UCX Build
           - libtool
           - automake
@@ -337,15 +346,19 @@ dependencies:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #           - rapids-dask-dependency==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #           - rapids-dask-dependency==25.10.*
+# # # =======
+# #           - rapids-dask-dependency==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#           - rapids-dask-dependency==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#           - rapids-dask-dependency==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-          - rapids-dask-dependency==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+          - rapids-dask-dependency==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - pyyaml>=6
       - output_types: [conda]
         packages:
@@ -374,15 +387,19 @@ dependencies:
           - pytest<9.0.0
           - pytest-asyncio>=1.0.0
           - pytest-rerunfailures!=16.0.0  # See https://github.com/pytest-dev/pytest-rerunfailures/issues/302
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #           - rapids-dask-dependency==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #           - rapids-dask-dependency==25.10.*
+# # # =======
+# #           - rapids-dask-dependency==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#           - rapids-dask-dependency==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#           - rapids-dask-dependency==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-          - rapids-dask-dependency==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+          - rapids-dask-dependency==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
   test_python_distributed_ucxx:
     common:
       - output_types: [conda, requirements, pyproject]
@@ -410,15 +427,19 @@ dependencies:
     common:
       - output_types: conda
         packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #           - &librmm_unsuffixed librmm==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #           - &librmm_unsuffixed librmm==25.10.*
+# # # =======
+# #           - &librmm_unsuffixed librmm==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#           - &librmm_unsuffixed librmm==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#           - &librmm_unsuffixed librmm==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-          - &librmm_unsuffixed librmm==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+          - &librmm_unsuffixed librmm==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -431,42 +452,54 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #               - librmm-cu12==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #               - librmm-cu12==25.10.*
+# # # =======
+# #               - librmm-cu12==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#               - librmm-cu12==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#               - librmm-cu12==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-              - librmm-cu12==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+              - librmm-cu12==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #               - librmm-cu13==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #               - librmm-cu13==25.10.*
+# # # =======
+# #               - librmm-cu13==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#               - librmm-cu13==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#               - librmm-cu13==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-              - librmm-cu13==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+              - librmm-cu13==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - {matrix: null, packages: [*librmm_unsuffixed]}
   depends_on_rmm:
     common:
       - output_types: conda
         packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #           - &rmm_unsuffixed rmm==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #           - &rmm_unsuffixed rmm==25.10.*
+# # # =======
+# #           - &rmm_unsuffixed rmm==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#           - &rmm_unsuffixed rmm==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#           - &rmm_unsuffixed rmm==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-          - &rmm_unsuffixed rmm==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+          - &rmm_unsuffixed rmm==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -479,42 +512,54 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #               - rmm-cu12==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #               - rmm-cu12==25.10.*
+# # # =======
+# #               - rmm-cu12==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#               - rmm-cu12==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#               - rmm-cu12==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-              - rmm-cu12==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+              - rmm-cu12==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #               - rmm-cu13==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #               - rmm-cu13==25.10.*
+# # # =======
+# #               - rmm-cu13==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#               - rmm-cu13==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#               - rmm-cu13==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-              - rmm-cu13==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+              - rmm-cu13==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - {matrix: null, packages: [*rmm_unsuffixed]}
   depends_on_cudf:
     common:
       - output_types: [conda]
         packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #           - &cudf_unsuffixed cudf==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #           - &cudf_unsuffixed cudf==25.10.*
+# # # =======
+# #           - &cudf_unsuffixed cudf==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#           - &cudf_unsuffixed cudf==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#           - &cudf_unsuffixed cudf==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-          - &cudf_unsuffixed cudf==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+          - &cudf_unsuffixed cudf==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -527,55 +572,71 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #               - cudf-cu12==25.10.*
-# #           - matrix:
-# #               cuda: "13.*"
-# #             packages:
-# #               - cudf-cu13==25.10.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #               - cudf-cu12==25.10.*
+# # #           - matrix:
+# # #               cuda: "13.*"
+# # #             packages:
+# # #               - cudf-cu13==25.10.*
+# # # =======
+# #               - cudf-cu12==25.12.*,>=0.0.0a0
 # # =======
-#               - cudf-cu12==25.12.*,>=0.0.0a0
+#               - cudf-cu12==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-              - cudf-cu12==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+              - cudf-cu12==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-#               - cudf-cu13==25.12.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# #               - cudf-cu13==25.12.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
+# # =======
+#               - cudf-cu13==26.2.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-              - cudf-cu13==26.2.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+              - cudf-cu13==26.4.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - {matrix: null, packages: [*cudf_unsuffixed]}
   depends_on_distributed_ucxx:
     common:
       - output_types: conda
         packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #           - distributed-ucxx==0.46.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #           - distributed-ucxx==0.46.*
+# # # =======
+# #           - distributed-ucxx==0.47.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#           - distributed-ucxx==0.47.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#           - distributed-ucxx==0.48.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-          - distributed-ucxx==0.48.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+          - distributed-ucxx==0.49.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
   depends_on_libucxx:
     common:
       - output_types: conda
         packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #           - &libucxx_unsuffixed libucxx==0.46.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #           - &libucxx_unsuffixed libucxx==0.46.*
+# # # =======
+# #           - &libucxx_unsuffixed libucxx==0.47.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#           - &libucxx_unsuffixed libucxx==0.47.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#           - &libucxx_unsuffixed libucxx==0.48.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-          - &libucxx_unsuffixed libucxx==0.48.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+          - &libucxx_unsuffixed libucxx==0.49.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
     specific:
       - output_types: [requirements, pyproject]
         matrices:
@@ -583,28 +644,36 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #               - libucxx-cu12==0.46.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #               - libucxx-cu12==0.46.*
+# # # =======
+# #               - libucxx-cu12==0.47.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#               - libucxx-cu12==0.47.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#               - libucxx-cu12==0.48.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-              - libucxx-cu12==0.48.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+              - libucxx-cu12==0.49.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #               - libucxx-cu13==0.46.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #               - libucxx-cu13==0.46.*
+# # # =======
+# #               - libucxx-cu13==0.47.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#               - libucxx-cu13==0.47.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#               - libucxx-cu13==0.48.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-              - libucxx-cu13==0.48.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+              - libucxx-cu13==0.49.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - matrix:
             packages:
               - *libucxx_unsuffixed
@@ -612,25 +681,29 @@ dependencies:
     common:
       - output_types: conda
         packages:
-          - libucxx-examples==0.48.*,>=0.0.0a0
+          - libucxx-examples==0.49.*,>=0.0.0a0
   depends_on_libucxx_tests:
     common:
       - output_types: conda
         packages:
-          - libucxx-tests==0.48.*,>=0.0.0a0
+          - libucxx-tests==0.49.*,>=0.0.0a0
   depends_on_ucxx:
     common:
       - output_types: conda
         packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #           - &ucxx_unsuffixed ucxx==0.46.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #           - &ucxx_unsuffixed ucxx==0.46.*
+# # # =======
+# #           - &ucxx_unsuffixed ucxx==0.47.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#           - &ucxx_unsuffixed ucxx==0.47.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#           - &ucxx_unsuffixed ucxx==0.48.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-          - &ucxx_unsuffixed ucxx==0.48.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+          - &ucxx_unsuffixed ucxx==0.49.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
       - output_types: requirements
         packages:
           # pip recognizes the index as a global option for the requirements.txt file
@@ -643,34 +716,42 @@ dependencies:
               cuda: "12.*"
               cuda_suffixed: "true"
             packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #               - ucxx-cu12==0.46.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #               - ucxx-cu12==0.46.*
+# # # =======
+# #               - ucxx-cu12==0.47.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#               - ucxx-cu12==0.47.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#               - ucxx-cu12==0.48.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-              - ucxx-cu12==0.48.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+              - ucxx-cu12==0.49.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - matrix:
               cuda: "13.*"
               cuda_suffixed: "true"
             packages:
-# <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# #               - ucxx-cu13==0.46.*
+# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # #               - ucxx-cu13==0.46.*
+# # # =======
+# #               - ucxx-cu13==0.47.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (cbe515cd)
 # # =======
-#               - ucxx-cu13==0.47.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (cbe515cd)
+#               - ucxx-cu13==0.48.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (f7c03f69)
 # =======
-              - ucxx-cu13==0.48.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (f7c03f69)
+              - ucxx-cu13==0.49.*,>=0.0.0a0
+# >>>>>>> END NEW CODE (a2f10bbf)
           - {matrix: null, packages: [*ucxx_unsuffixed]}
   depends_on_ucxx_tests:
     common:
       - output_types: conda
         packages:
-          - ucxx-tests==0.48.*,>=0.0.0a0
+          - ucxx-tests==0.49.*,>=0.0.0a0
   depends_on_ucx_build:
     common:
       - output_types: requirements
