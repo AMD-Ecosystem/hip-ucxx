@@ -36,8 +36,12 @@ authors = [
 # license-files = ["LICENSE", "NOTICE.txt"]
 # =======
 license = "BSD-3-Clause"
-# >>>>>>> END NEW CODE (480d7d8e)
-requires-python = ">=3.10"
+# <<<<<<< OLD CODE from f17d0b3c (4bc37b4b) - COMMENTED OUT
+# # >>>>>>> END NEW CODE (480d7d8e)
+# requires-python = ">=3.10"
+# =======
+requires-python = ">=3.11"
+# >>>>>>> END NEW CODE (4bc37b4b)
 dependencies = [
 # <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
 # # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT

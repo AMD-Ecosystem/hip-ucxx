@@ -39,8 +39,12 @@ authors = [
 # =======
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
-# >>>>>>> END NEW CODE (480d7d8e)
-requires-python = ">=3.10"
+# <<<<<<< OLD CODE from f17d0b3c (4bc37b4b) - COMMENTED OUT
+# # >>>>>>> END NEW CODE (480d7d8e)
+# requires-python = ">=3.10"
+# =======
+requires-python = ">=3.11"
+# >>>>>>> END NEW CODE (4bc37b4b)
 dependencies = [
 # <<<<<<< OLD CODE from 4b311b93 (53fa37c7) - COMMENTED OUT
 # # <<<<<<< OLD CODE from 025d5ce7 (ae0b7c11) - COMMENTED OUT
@@ -82,7 +86,6 @@ classifiers = [
 # =======
 # >>>>>>> END NEW CODE (480d7d8e)
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
