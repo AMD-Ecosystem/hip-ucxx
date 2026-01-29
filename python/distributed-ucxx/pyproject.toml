@@ -46,19 +46,23 @@ license-files = ["LICENSE"]
 requires-python = ">=3.11"
 # >>>>>>> END NEW CODE (4bc37b4b)
 dependencies = [
-# <<<<<<< OLD CODE from 4b311b93 (53fa37c7) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 025d5ce7 (ae0b7c11) - COMMENTED OUT
-# # # <<<<<<< OLD CODE from c8188997 (400b6ac5) - COMMENTED OUT
-# # #     "numba-hip",
+# <<<<<<< OLD CODE from 76c5d5dd (7a464b56) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 4b311b93 (53fa37c7) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 025d5ce7 (ae0b7c11) - COMMENTED OUT
+# # # # <<<<<<< OLD CODE from c8188997 (400b6ac5) - COMMENTED OUT
+# # # #     "numba-hip",
+# # # # =======
+# # #     "numba-cuda[cu13]>=0.19.1,<0.20.0",
+# # # # >>>>>>> END NEW CODE (400b6ac5)
 # # # =======
-# #     "numba-cuda[cu13]>=0.19.1,<0.20.0",
-# # # >>>>>>> END NEW CODE (400b6ac5)
+# #     "numba-cuda[cu13]>=0.22.1,<0.23.0",
+# # # >>>>>>> END NEW CODE (ae0b7c11)
 # # =======
-#     "numba-cuda[cu13]>=0.22.1,<0.23.0",
-# # >>>>>>> END NEW CODE (ae0b7c11)
+#     "numba-cuda[cu13]>=0.22.1",
+# # >>>>>>> END NEW CODE (53fa37c7)
 # =======
-    "numba-cuda[cu13]>=0.22.1",
-# >>>>>>> END NEW CODE (53fa37c7)
+    "numba-cuda>=0.22.1",
+# >>>>>>> END NEW CODE (7a464b56)
     "pyyaml>=6",
 # <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
 # # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
