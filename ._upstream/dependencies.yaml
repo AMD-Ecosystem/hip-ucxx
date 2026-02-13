@@ -324,64 +324,14 @@ dependencies:
           - &numpy numpy>=1.23,<3.0
           # 'nvidia-ml-py' provides the 'pynvml' module
           - nvidia-ml-py>=12
-      - output_types: [conda]
-        packages:
-          - &numba_cuda numba-cuda>=0.22.1
-    specific:
-      - output_types: [requirements, pyproject]
-        matrices:
-          - matrix:
-              cuda: "12.*"
-              cuda_suffixed: "true"
-            packages:
-              - &numba_cuda_cu12 numba-cuda[cu12]>=0.22.1
-          - matrix:
-              cuda: "13.*"
-              cuda_suffixed: "true"
-            packages:
-              - &numba_cuda_cu13 numba-cuda[cu13]>=0.22.1
-          # fallback to numba-cuda with no extra CUDA packages if 'cuda_suffixed' isn't true
-          - matrix:
-            packages:
-              - *numba_cuda
+          - cuda-core>=0.3.2
   run_python_distributed_ucxx:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
-# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# # #           - rapids-dask-dependency==25.10.*
-# # # =======
-# #           - rapids-dask-dependency==25.12.*,>=0.0.0a0
-# # # >>>>>>> END NEW CODE (cbe515cd)
-# # =======
-#           - rapids-dask-dependency==26.2.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (f7c03f69)
-# =======
           - rapids-dask-dependency==26.4.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (a2f10bbf)
           - pyyaml>=6
-      - output_types: [conda]
-        packages:
-          - *numba_cuda
-    specific:
-      - output_types: [requirements, pyproject]
-        matrices:
-          - matrix:
-              cuda: "12.*"
-              cuda_suffixed: "true"
-            packages:
-              - *numba_cuda_cu12
-          - matrix:
-              cuda: "13.*"
-              cuda_suffixed: "true"
-            packages:
-              - *numba_cuda_cu13
-          # fallback to numba-cuda with no extra CUDA packages if 'cuda_suffixed' isn't true
-          - matrix:
-            packages:
-              - *numba_cuda
+          - cuda-core>=0.3.2
   test_cpp:
     common:
       - output_types: conda
@@ -395,26 +345,107 @@ dependencies:
           - pytest<9.0.0
           - pytest-asyncio>=1.0.0
           - pytest-rerunfailures!=16.0.0  # See https://github.com/pytest-dev/pytest-rerunfailures/issues/302
-# <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# # #           - rapids-dask-dependency==25.10.*
-# # # =======
-# #           - rapids-dask-dependency==25.12.*,>=0.0.0a0
-# # # >>>>>>> END NEW CODE (cbe515cd)
-# # =======
-#           - rapids-dask-dependency==26.2.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (f7c03f69)
-# =======
           - rapids-dask-dependency==26.4.*,>=0.0.0a0
-# >>>>>>> END NEW CODE (a2f10bbf)
+      - output_types: [conda]
+        packages:
+          - &numba_cuda_test numba-cuda>=0.22.1
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+              cuda_suffixed: "true"
+            packages:
+              - &numba_cuda_cu12_test numba-cuda[cu12]>=0.22.1
+          - matrix:
+              cuda: "13.*"
+              cuda_suffixed: "true"
+            packages:
+              - &numba_cuda_cu13_test numba-cuda[cu13]>=0.22.1
+          # fallback to numba-cuda with no extra CUDA packages if 'cuda_suffixed' isn't true
+          - matrix:
+            packages:
+              - *numba_cuda_test
   test_python_distributed_ucxx:
     common:
       - output_types: [conda, requirements, pyproject]
         packages:
+# <<<<<<< OLD CODE from d35bb645 (8de78d24) - COMMENTED OUT
+# # <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # # #           - rapids-dask-dependency==25.10.*
+# # # # =======
+# # #           - rapids-dask-dependency==25.12.*,>=0.0.0a0
+# # # # >>>>>>> END NEW CODE (cbe515cd)
+# # # =======
+# #           - rapids-dask-dependency==26.2.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (f7c03f69)
+# # =======
+#           - rapids-dask-dependency==26.4.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (a2f10bbf)
+#           - pyyaml>=6
+# =======
           - *numpy
           - pytest<9.0.0
           - pytest-rerunfailures!=16.0.0  # See https://github.com/pytest-dev/pytest-rerunfailures/issues/302
+# >>>>>>> END NEW CODE (8de78d24)
+      - output_types: [conda]
+        packages:
+          - *numba_cuda_test
+    specific:
+      - output_types: [requirements, pyproject]
+        matrices:
+          - matrix:
+              cuda: "12.*"
+              cuda_suffixed: "true"
+            packages:
+              - *numba_cuda_cu12_test
+          - matrix:
+              cuda: "13.*"
+              cuda_suffixed: "true"
+            packages:
+              - *numba_cuda_cu13_test
+          - matrix:
+            packages:
+# <<<<<<< OLD CODE from d35bb645 (8de78d24) - COMMENTED OUT
+#               - *numba_cuda
+#   test_cpp:
+#     common:
+#       - output_types: conda
+#         packages:
+#           - *cmake_ver
+#   test_python_ucxx:
+#     common:
+#       - output_types: [conda, requirements, pyproject]
+#         packages:
+#           - cloudpickle
+#           - pytest<9.0.0
+#           - pytest-asyncio>=1.0.0
+#           - pytest-rerunfailures!=16.0.0  # See https://github.com/pytest-dev/pytest-rerunfailures/issues/302
+# # <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # # #           - rapids-dask-dependency==25.10.*
+# # # # =======
+# # #           - rapids-dask-dependency==25.12.*,>=0.0.0a0
+# # # # >>>>>>> END NEW CODE (cbe515cd)
+# # # =======
+# #           - rapids-dask-dependency==26.2.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (f7c03f69)
+# # =======
+#           - rapids-dask-dependency==26.4.*,>=0.0.0a0
+# # >>>>>>> END NEW CODE (a2f10bbf)
+#   test_python_distributed_ucxx:
+#     common:
+#       - output_types: [conda, requirements, pyproject]
+#         packages:
+#           - *numpy
+#           - pytest<9.0.0
+#           - pytest-rerunfailures!=16.0.0  # See https://github.com/pytest-dev/pytest-rerunfailures/issues/302
+# =======
+              - *numba_cuda_test
+# >>>>>>> END NEW CODE (8de78d24)
   depends_on_cupy:
     common:
       - output_types: conda
