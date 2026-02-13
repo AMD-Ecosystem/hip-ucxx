@@ -1,6 +1,11 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# SPDX-License-Identifier: BSD-3-Clause AND MIT
+# <<<<<<< OLD CODE from 606ea7a2 (72acc5cc) - COMMENTED OUT
+# # SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+# # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# # SPDX-License-Identifier: BSD-3-Clause AND MIT
+# =======
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
+# SPDX-License-Identifier: BSD-3-Clause
+# >>>>>>> END NEW CODE (72acc5cc)
 
 import asyncio
 import io
@@ -196,8 +201,10 @@ async def am_recv(ep):
 
 
 async def wait_listener_client_handlers(listener):
-    pass
     while listener.active_clients > 0:
-        await asyncio.sleep(0)
+        # Minimal delay to yield to the event loop so call_soon_threadsafe callbacks
+        # run. Using a very short positive sleep ensures pending callbacks are
+        # processed and significantly reduces "coroutine never awaited" warnings.
+        await asyncio.sleep(1e-9)
         if not ucxx.core._get_ctx().progress_mode.startswith("thread"):
             ucxx.progress()
