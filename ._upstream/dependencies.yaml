@@ -337,6 +337,8 @@ dependencies:
       - output_types: conda
         packages:
           - *cmake_ver
+          - gdb  # Used for timeout_with_stack.py
+          - psutil  # Used for timeout_with_stack.py
   test_python_ucxx:
     common:
       - output_types: [conda, requirements, pyproject]
@@ -348,7 +350,9 @@ dependencies:
           - rapids-dask-dependency==26.4.*,>=0.0.0a0
       - output_types: [conda]
         packages:
+          - gdb  # Used for timeout_with_stack.py
           - &numba_cuda_test numba-cuda>=0.22.1
+          - psutil  # Used for timeout_with_stack.py
     specific:
       - output_types: [requirements, pyproject]
         matrices:
@@ -392,7 +396,9 @@ dependencies:
 # >>>>>>> END NEW CODE (8de78d24)
       - output_types: [conda]
         packages:
+          - gdb  # Used for timeout_with_stack.py
           - *numba_cuda_test
+          - psutil  # Used for timeout_with_stack.py
     specific:
       - output_types: [requirements, pyproject]
         matrices:
