@@ -3,6 +3,7 @@
 
 import asyncio
 import gc
+import inspect
 import os
 
 import pytest
@@ -129,7 +130,7 @@ def pytest_pyfunc_call(pyfuncitem: pytest.Function):
     else:
         reruns = 1
 
-    if asyncio.iscoroutinefunction(pyfuncitem.obj) and timeout > 0.0:
+    if inspect.iscoroutinefunction(pyfuncitem.obj) and timeout > 0.0:
 
         async def wrapped_obj(*args, **kwargs):
             for i in range(reruns):
