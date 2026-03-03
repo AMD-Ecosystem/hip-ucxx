@@ -348,7 +348,7 @@ dependencies:
       - output_types: [conda, requirements, pyproject]
         packages:
           - cloudpickle
-          - pytest<9.0.0
+          - pytest
           - pytest-asyncio>=1.0.0
           - pytest-rerunfailures!=16.0.0  # See https://github.com/pytest-dev/pytest-rerunfailures/issues/302
           - rapids-dask-dependency==26.4.*,>=0.0.0a0
@@ -395,7 +395,7 @@ dependencies:
 #           - pyyaml>=6
 # =======
           - *numpy
-          - pytest<9.0.0
+          - pytest
           - pytest-rerunfailures!=16.0.0  # See https://github.com/pytest-dev/pytest-rerunfailures/issues/302
 # >>>>>>> END NEW CODE (8de78d24)
       - output_types: [conda]
