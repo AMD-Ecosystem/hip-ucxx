@@ -135,19 +135,23 @@ test = [
     "cudf==26.6.*,>=0.0.0a0",
 # >>>>>>> END NEW CODE (2cb16e35)
     "cupy-cuda13x>=13.6.0",
-# <<<<<<< OLD CODE from d35bb645 (8de78d24) - COMMENTED OUT
-# # <<<<<<< OLD CODE from c8188997 (400b6ac5) - COMMENTED OUT
-# # # >>>>>>> END NEW CODE (cbe515cd)
-# #     "numpy>=1.23,<3.0a0",
-# #     "pytest-rerunfailures!=16.0.0",
-# # # <<<<<<< OLD CODE from 20e06d76 (3444a1a3) - COMMENTED OUT
-# # # ]
+# <<<<<<< OLD CODE from b552f698 (79c30c28) - COMMENTED OUT
+# # <<<<<<< OLD CODE from d35bb645 (8de78d24) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from c8188997 (400b6ac5) - COMMENTED OUT
+# # # # >>>>>>> END NEW CODE (cbe515cd)
+# # #     "numpy>=1.23,<3.0a0",
+# # #     "pytest-rerunfailures!=16.0.0",
+# # # # <<<<<<< OLD CODE from 20e06d76 (3444a1a3) - COMMENTED OUT
+# # # # ]
+# # # # =======
+# # #     "pytest<9.0.0a0",
 # # # =======
-# #     "pytest<9.0.0a0",
 # # =======
+#     "numba-cuda>=0.22.1",
+# # >>>>>>> END NEW CODE (8de78d24)
 # =======
-    "numba-cuda>=0.22.1",
-# >>>>>>> END NEW CODE (8de78d24)
+    "numba-cuda>=0.22.1,<0.29.0",
+# >>>>>>> END NEW CODE (79c30c28)
     "numpy>=1.23,<3.0",
     "pytest",
     "pytest-rerunfailures!=16.0.0",
