@@ -366,7 +366,8 @@ cdef extern from "<ucxx/api.h>" namespace "ucxx" nogil:
     cdef cppclass Address(Component):
         ucp_address_t* getHandle()
         size_t getLength()
-        string_view getString()
+        string_view getStringView()
+        string getString()
 
     cdef cppclass Request(Component):
         cpp_bool isCompleted()
