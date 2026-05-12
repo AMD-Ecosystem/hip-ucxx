@@ -1,10 +1,14 @@
 # =================================================================================
 # cmake-format: off
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-# <<<<<<< OLD CODE from 538d7976 (f13787d6) - COMMENTED OUT
-# # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# # SPDX-License-Identifier: BSD-3-Clause AND MIT
+# <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
+# # SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+# # <<<<<<< OLD CODE from 538d7976 (f13787d6) - COMMENTED OUT
+# # # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# # # SPDX-License-Identifier: BSD-3-Clause AND MIT
+# # =======
 # =======
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
+# >>>>>>> END NEW CODE (03fbe7d5)
 # SPDX-License-Identifier: BSD-3-Clause
 # cmake-format: on
 # >>>>>>> END NEW CODE (f13787d6)
@@ -48,13 +52,19 @@ option(BUILD_EXAMPLES "Configure CMake to build examples" OFF)
 option(BUILD_SHARED_LIBS "Build UCXX shared libraries" ON)
 option(UCXX_BUILD_PYTHON_LIB "Build Python API library" OFF)
 option(UCXX_ENABLE_RMM "Enable support for CUDA multi-buffer transfer with RMM" OFF)
+# TODO: Flip UCXX_ENABLE_CCCL default to OFF once devcontainer builds pass -DUCXX_ENABLE_CCCL=ON
+option(UCXX_ENABLE_CCCL "Enable support for CUDA buffer with CCCL" ON)
 option(DISABLE_DEPRECATION_WARNINGS "Disable warnings generated from deprecated declarations." OFF)
 
 message(VERBOSE "UCXX: Configure CMake to build tests: ${BUILD_TESTS}")
 message(VERBOSE "UCXX: Configure CMake to build benchmarks: ${BUILD_BENCHMARKS}")
 message(VERBOSE "UCXX: Configure CMake to build examples: ${BUILD_EXAMPLES}")
 message(VERBOSE "UCXX: Build UCXX shared libraries: ${BUILD_SHARED_LIBS}")
-message(VERBOSE "UCXX: Enable support for CUDA multi-buffer transfer with RMM: ${UCXX_ENABLE_RMM}")
+message(
+  VERBOSE
+  "UCXX: Enable support for CUDA multi-buffer transfer with RMM (DEPRECATED): ${UCXX_ENABLE_RMM}"
+)
+message(VERBOSE "UCXX: Enable support for CUDA buffer with CCCL: ${UCXX_ENABLE_CCCL}")
 message(
   VERBOSE
   "UCXX: Disable warnings generated from deprecated declarations: ${DISABLE_DEPRECATION_WARNINGS}"
@@ -97,7 +107,14 @@ rapids_find_package(
 rapids_cpm_init(OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/../versions.json)
 # find rmm
 if(UCXX_ENABLE_RMM)
+  message(DEPRECATION "UCXX_ENABLE_RMM is deprecated and will be removed in a future release. "
+                      "Use UCXX_ENABLE_CCCL instead."
+  )
   include(cmake/thirdparty/get_rmm.cmake)
+endif()
+# find cccl
+if(UCXX_ENABLE_CCCL)
+  include(cmake/thirdparty/get_cccl.cmake)
 endif()
 # find or install GoogleTest
 if(BUILD_TESTS)
@@ -176,6 +193,14 @@ target_compile_definitions(ucxx PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:${UCXX_CXX_DEF
 if(UCXX_ENABLE_RMM)
   target_link_libraries(ucxx PUBLIC rmm::rmm)
   target_compile_definitions(ucxx PUBLIC UCXX_ENABLE_RMM)
+endif()
+
+# Enable CCCL if necessary
+if(UCXX_ENABLE_CCCL)
+  find_package(CUDAToolkit REQUIRED)
+  target_compile_definitions(ucxx PUBLIC UCXX_ENABLE_CCCL)
+  target_link_libraries(ucxx PRIVATE CCCL::CCCL CUDA::cudart_static)
+  target_sources(ucxx PRIVATE src/buffer_cccl.cpp)
 endif()
 
 # Specify the target module library dependencies

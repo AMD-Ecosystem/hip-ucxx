@@ -5,7 +5,7 @@
 # # SPDX-License-Identifier: BSD-3-Clause AND MIT
 # =======
 # cmake-format: off
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 # cmake-format: on
 # >>>>>>> END NEW CODE (f13787d6)
@@ -48,16 +48,23 @@ if(NOT DEFINED UCXX_BUILD_PYTHON_LIB)
   option(FIND_UCXX_CPP
          "Search for existing UCXX C++ installations before defaulting to local files" OFF
   )
-  if(FIND_UCXX_CPP)
-    rapids_find_package(
-      ucxx REQUIRED
-      BUILD_EXPORT_SET ucxx-python-exports
-      INSTALL_EXPORT_SET ucxx-python-exports
-    )
-  else()
-    set(UCXX_ENABLE_RMM ON)
-    add_subdirectory(.. ucxx-cpp)
-  endif()
+# <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
+#   if(FIND_UCXX_CPP)
+#     rapids_find_package(
+#       ucxx REQUIRED
+#       BUILD_EXPORT_SET ucxx-python-exports
+#       INSTALL_EXPORT_SET ucxx-python-exports
+#     )
+#   else()
+#     set(UCXX_ENABLE_RMM ON)
+#     add_subdirectory(.. ucxx-cpp)
+#   endif()
+# =======
+else()
+  set(UCXX_ENABLE_RMM ON)
+  set(UCXX_ENABLE_CCCL ON)
+  add_subdirectory(.. ucxx-cpp)
+# >>>>>>> END NEW CODE (03fbe7d5)
 endif()
 
 rapids_find_package(
@@ -112,6 +119,10 @@ target_compile_definitions(
   ucxx_python PUBLIC UCXX_ENABLE_PYTHON
                      "RMM_LOG_ACTIVE_LEVEL=RAPIDS_LOGGER_LEVEL_${RMM_LOGGING_LEVEL}"
 )
+
+if(UCXX_ENABLE_CCCL)
+  target_compile_definitions(ucxx_python PUBLIC UCXX_ENABLE_CCCL)
+endif()
 
 # Specify the target module library dependencies. We use COMPILE_ONLY for Python because Python does
 # not need to be linked since its symbols will always be available at runtime since we are running

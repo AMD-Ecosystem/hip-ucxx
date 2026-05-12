@@ -31,6 +31,10 @@
 #include <rmm/device_buffer.hpp>
 #endif
 
+#if UCXX_ENABLE_CCCL
+#include <cuda_runtime.h>
+#endif
+
 namespace {
 
 using ::testing::Combine;
@@ -80,13 +84,27 @@ class RequestTest : public ::testing::TestWithParam<
 #endif
     }
 
+    if (_bufferType == ucxx::BufferType::CCCL) {
+#if !UCXX_ENABLE_CCCL
+      GTEST_SKIP() << "UCXX was not built with CCCL support";
+#endif
+    }
+
     _memoryType =
-      (_bufferType == ucxx::BufferType::RMM) ? UCS_MEMORY_TYPE_RMM : UCS_MEMORY_TYPE_HOST;
+// <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
+//       (_bufferType == ucxx::BufferType::RMM) ? UCS_MEMORY_TYPE_RMM : UCS_MEMORY_TYPE_HOST;
+// =======
+      (_bufferType != ucxx::BufferType::Host) ? UCS_MEMORY_TYPE_CUDA : UCS_MEMORY_TYPE_HOST;
+// >>>>>>> END NEW CODE (03fbe7d5)
     _messageSize = _messageLength * sizeof(int);
 
     _context = ucxx::createContext({{"RNDV_THRESH", std::to_string(_rndvThresh)}},
                                    ucxx::Context::defaultFeatureFlags);
-    _worker  = _context->createWorker(_enableDelayedSubmission);
+    auto builder =
+      ucxx::experimental::createWorker(_context).delayedSubmission(_enableDelayedSubmission);
+    if (_bufferType == ucxx::BufferType::RMM || _bufferType == ucxx::BufferType::CCCL)
+      builder.cudaBufferType(_bufferType);
+    _worker = builder.build();
 
     if (_progressMode == ProgressMode::Blocking) {
       _worker->initBlockingProgressMode();
@@ -137,6 +155,11 @@ class RequestTest : public ::testing::TestWithParam<
         _sendBuffer[i] = std::make_unique<ucxx::RMMBuffer>(_messageSize);
         if (allocateRecvBuffer) _recvBuffer[i] = std::make_unique<ucxx::RMMBuffer>(_messageSize);
 #endif
+#if UCXX_ENABLE_CCCL
+      } else if (_bufferType == ucxx::BufferType::CCCL) {
+        _sendBuffer[i] = std::make_unique<ucxx::CCCLBuffer>(_messageSize);
+        if (allocateRecvBuffer) _recvBuffer[i] = std::make_unique<ucxx::CCCLBuffer>(_messageSize);
+#endif
       }
 
       copyMemoryTypeAware(_sendBuffer[i]->data(), _send[i].data(), _messageSize, false);
@@ -147,6 +170,7 @@ class RequestTest : public ::testing::TestWithParam<
 #if UCXX_ENABLE_RMM
     if (_bufferType == ucxx::BufferType::RMM) { rmm::cuda_stream_default.synchronize(); }
 #endif
+    if (_bufferType == ucxx::BufferType::CCCL) { cudaStreamSynchronize(nullptr); }
   }
 
   void copyResults()
@@ -156,6 +180,7 @@ class RequestTest : public ::testing::TestWithParam<
 #if UCXX_ENABLE_RMM
     if (_bufferType == ucxx::BufferType::RMM) { rmm::cuda_stream_default.synchronize(); }
 #endif
+    if (_bufferType == ucxx::BufferType::CCCL) { cudaStreamSynchronize(nullptr); }
   }
 
   void copyMemoryTypeAware(void* dst, const void* src, size_t size, bool synchronize = true)
@@ -163,11 +188,18 @@ class RequestTest : public ::testing::TestWithParam<
     if (_memoryType == UCS_MEMORY_TYPE_HOST) {
       memcpy(dst, src, size);
 #if UCXX_ENABLE_RMM
-    } else if (_memoryType == UCS_MEMORY_TYPE_RMM) {
+// <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
+//     } else if (_memoryType == UCS_MEMORY_TYPE_RMM) {
+// =======
+    } else if (_memoryType == UCS_MEMORY_TYPE_CUDA && _bufferType == ucxx::BufferType::RMM) {
+// >>>>>>> END NEW CODE (03fbe7d5)
       RMM_CUDA_TRY(
         cudaMemcpyAsync(dst, src, size, cudaMemcpyDefault, rmm::cuda_stream_default.value()));
       if (synchronize) rmm::cuda_stream_default.synchronize();
 #endif
+    } else if (_memoryType == UCS_MEMORY_TYPE_CUDA) {
+      cudaMemcpyAsync(dst, src, size, cudaMemcpyDefault, nullptr);
+      if (synchronize) cudaStreamSynchronize(nullptr);
     }
   }
 };
@@ -178,12 +210,29 @@ TEST_P(RequestTest, ProgressAm)
     GTEST_SKIP() << "Interrupting UCP worker progress operation in wait mode is not possible";
   }
 
-  if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_RMM) {
-#if !UCXX_ENABLE_RMM
-    GTEST_SKIP() << "UCXX was not built with RMM support";
-#else
-    _worker->registerAmAllocator(
-      UCS_MEMORY_TYPE_RMM, [](size_t length) { return std::make_shared<ucxx::RMMBuffer>(length); });
+// <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
+//   if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_RMM) {
+// #if !UCXX_ENABLE_RMM
+//     GTEST_SKIP() << "UCXX was not built with RMM support";
+// #else
+//     _worker->registerAmAllocator(
+//       UCS_MEMORY_TYPE_RMM, [](size_t length) { return std::make_shared<ucxx::RMMBuffer>(length); });
+// =======
+  if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_CUDA) {
+#if UCXX_ENABLE_RMM
+    if (_bufferType == ucxx::BufferType::RMM) {
+      _worker->registerAmAllocator(UCS_MEMORY_TYPE_CUDA, [](size_t length) {
+        return std::make_shared<ucxx::RMMBuffer>(length);
+      });
+    }
+#endif
+#if UCXX_ENABLE_CCCL
+    if (_bufferType == ucxx::BufferType::CCCL) {
+      _worker->registerAmAllocator(UCS_MEMORY_TYPE_CUDA, [](size_t length) {
+        return std::make_shared<ucxx::CCCLBuffer>(length);
+      });
+    }
+// >>>>>>> END NEW CODE (03fbe7d5)
 #endif
   }
 
@@ -308,12 +357,29 @@ TEST_P(RequestTest, ProgressAmReceiverCallback)
     GTEST_SKIP() << "Interrupting UCP worker progress operation in wait mode is not possible";
   }
 
-  if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_RMM) {
-#if !UCXX_ENABLE_RMM
-    GTEST_SKIP() << "UCXX was not built with RMM support";
-#else
-    _worker->registerAmAllocator(
-      UCS_MEMORY_TYPE_RMM, [](size_t length) { return std::make_shared<ucxx::RMMBuffer>(length); });
+// <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
+//   if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_RMM) {
+// #if !UCXX_ENABLE_RMM
+//     GTEST_SKIP() << "UCXX was not built with RMM support";
+// #else
+//     _worker->registerAmAllocator(
+//       UCS_MEMORY_TYPE_RMM, [](size_t length) { return std::make_shared<ucxx::RMMBuffer>(length); });
+// =======
+  if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_CUDA) {
+#if UCXX_ENABLE_RMM
+    if (_bufferType == ucxx::BufferType::RMM) {
+      _worker->registerAmAllocator(UCS_MEMORY_TYPE_CUDA, [](size_t length) {
+        return std::make_shared<ucxx::RMMBuffer>(length);
+      });
+    }
+#endif
+#if UCXX_ENABLE_CCCL
+    if (_bufferType == ucxx::BufferType::CCCL) {
+      _worker->registerAmAllocator(UCS_MEMORY_TYPE_CUDA, [](size_t length) {
+        return std::make_shared<ucxx::CCCLBuffer>(length);
+      });
+    }
+// >>>>>>> END NEW CODE (03fbe7d5)
 #endif
   }
 
@@ -514,7 +580,7 @@ TEST_P(RequestTest, ProgressTagMulti)
 
   // Allocate buffers for request sizes/types
   std::vector<size_t> multiSize(numMulti, _messageSize);
-  std::vector<int> multiIsCUDA(numMulti, _bufferType == ucxx::BufferType::RMM);
+  std::vector<int> multiIsCUDA(numMulti, _bufferType != ucxx::BufferType::Host);
 
   // Submit and wait for transfers to complete
   std::vector<std::shared_ptr<ucxx::Request>> requests;
@@ -833,6 +899,28 @@ INSTANTIATE_TEST_SUITE_P(RMMProgressModes,
 INSTANTIATE_TEST_SUITE_P(RMMDelayedSubmission,
                          RequestTest,
                          Combine(Values(ucxx::BufferType::RMM),
+                                 Values(false, true),
+                                 Values(true),
+                                 Values(ProgressMode::ThreadPolling, ProgressMode::ThreadBlocking),
+                                 Values(0, 1, 1024, 2048, 1048576)));
+#endif
+
+#if UCXX_ENABLE_CCCL
+INSTANTIATE_TEST_SUITE_P(CCCLProgressModes,
+                         RequestTest,
+                         Combine(Values(ucxx::BufferType::CCCL),
+                                 Values(false, true),
+                                 Values(false),
+                                 Values(ProgressMode::Polling,
+                                        ProgressMode::Blocking,
+                                        // ProgressMode::Wait,  // Hangs on Stream
+                                        ProgressMode::ThreadPolling,
+                                        ProgressMode::ThreadBlocking),
+                                 Values(0, 1, 1024, 2048, 1048576)));
+
+INSTANTIATE_TEST_SUITE_P(CCCLDelayedSubmission,
+                         RequestTest,
+                         Combine(Values(ucxx::BufferType::CCCL),
                                  Values(false, true),
                                  Values(true),
                                  Values(ProgressMode::ThreadPolling, ProgressMode::ThreadBlocking),

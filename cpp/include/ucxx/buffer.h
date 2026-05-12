@@ -1,16 +1,19 @@
 /**
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-// <<<<<<< OLD CODE from e8dda90c (750afcbd) - COMMENTED OUT
-//  * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-//  * SPDX-License-Identifier: BSD-3-Clause AND MIT
+// <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
+//  * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+// // <<<<<<< OLD CODE from e8dda90c (750afcbd) - COMMENTED OUT
+// //  * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+// //  * SPDX-License-Identifier: BSD-3-Clause AND MIT
+// // =======
 // =======
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
+// >>>>>>> END NEW CODE (03fbe7d5)
  * SPDX-License-Identifier: BSD-3-Clause
 // >>>>>>> END NEW CODE (750afcbd)
  */
 #pragma once
 
 #include <memory>
-#include <utility>
 
 #include <ucxx/log.h>
 
@@ -20,7 +23,6 @@ class device_buffer;
 }  // namespace rmm
 
 namespace ucxx {
-
 /**
  * @brief The type of a buffer.
  *
@@ -29,6 +31,7 @@ namespace ucxx {
 enum class BufferType {
   Host = 0,
   RMM,
+  CCCL,
   Invalid,
 };
 
@@ -234,6 +237,9 @@ class RMMBuffer : public Buffer {
    * auto buffer = RMMBuffer(1024);
    * @endcode
    */
+  [[deprecated(
+    "RMMBuffer is deprecated and will be removed in a future release. Use CCCL buffers instead "
+    "(UCXX_ENABLE_CCCL).")]]
   explicit RMMBuffer(const size_t size);
 
   /**
@@ -241,6 +247,9 @@ class RMMBuffer : public Buffer {
    *
    * @param[in] rmm_buffer the `rmm::device_buffer` to hold.
    */
+  [[deprecated(
+    "RMMBuffer is deprecated and will be removed in a future release. Use CCCL buffers instead "
+    "(UCXX_ENABLE_CCCL).")]]
   explicit RMMBuffer(std::unique_ptr<rmm::device_buffer> rmm_buffer);
 
   /**
@@ -292,6 +301,67 @@ class RMMBuffer : public Buffer {
    * @return the void pointer to the device buffer.
    */
   [[nodiscard]] void* data() override;
+};
+#endif
+
+#if UCXX_ENABLE_CCCL
+/**
+ * @brief Opaque implementation struct for CCCLBuffer (defined in buffer_cccl.cu).
+ * Users should NOT access this type directly.
+ */
+struct CCCLBufferImpl;
+
+/**
+ * @brief A simple object containing a CCCL (CUDA) buffer.
+ *
+ * A buffer encapsulating a CCCL (CUDA) buffer with its properties.
+ */
+class CCCLBuffer : public Buffer {
+ private:
+  std::unique_ptr<CCCLBufferImpl> _impl;  ///< Opaque unique_ptr to CCCL buffer implementation
+
+ public:
+  CCCLBuffer()                             = delete;
+  CCCLBuffer(const CCCLBuffer&)            = delete;
+  CCCLBuffer& operator=(CCCLBuffer const&) = delete;
+  CCCLBuffer(CCCLBuffer&& o)               = delete;
+  CCCLBuffer& operator=(CCCLBuffer&& o)    = delete;
+
+  ~CCCLBuffer() override;
+
+  /**
+   * @brief Constructor of concrete type `CCCLBuffer`.
+   *
+   * Constructor to materialize a buffer holding device memory. The internal
+   * buffer holds a `std::unique_ptr<CCCLBufferImpl>` and is destroyed
+   * when the object goes out-of-scope or is explicitly deleted.
+   *
+   * @param[in] size the size of the device buffer to allocate.
+   *
+   * @code{.cpp}
+   * // Allocate CCCL device buffer of 1KiB
+   * auto buffer = CCCLBuffer(1024);
+   * @endcode
+   */
+  explicit CCCLBuffer(const size_t size);
+
+  /**
+   * @brief Get a pointer to the allocated raw device buffer.
+   *
+   * Get a pointer to the underlying buffer, but does not release ownership.
+   *
+   * @code{.cpp}
+   * auto buffer = CCCLBuffer(1024);
+   * void* ptr = buffer.data();
+   * // `ptr` is a device pointer valid until buffer is released/destroyed
+   * @endcode
+   *
+   * @throws std::runtime_error if object has been released.
+   *
+   * @return the void pointer to the device buffer.
+   */
+  [[nodiscard]] void* data() override;
+// >>>>>>> END NEW CODE (03fbe7d5)
 };
 #endif
 
