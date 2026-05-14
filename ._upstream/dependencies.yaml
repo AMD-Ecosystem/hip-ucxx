@@ -169,22 +169,26 @@ dependencies:
         packages:
           - c-compiler
           - cxx-compiler
-          - &cmake_ver cmake>=3.26.4,!=3.30.0
-# <<<<<<< OLD CODE from 7f5a0d0c (2cb16e35) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
-# # # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
-# # # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
-# # # #           - librmm==25.10.*
+# <<<<<<< OLD CODE from 2f530bdb (d2721ca8) - COMMENTED OUT
+#           - &cmake_ver cmake>=3.26.4,!=3.30.0
+# # <<<<<<< OLD CODE from 7f5a0d0c (2cb16e35) - COMMENTED OUT
+# # # <<<<<<< OLD CODE from 7926bc45 (a2f10bbf) - COMMENTED OUT
+# # # # <<<<<<< OLD CODE from 9c84998b (f7c03f69) - COMMENTED OUT
+# # # # # <<<<<<< OLD CODE from 4aec72b6 (cbe515cd) - COMMENTED OUT
+# # # # #           - librmm==25.10.*
+# # # # # =======
+# # # #           - librmm==25.12.*,>=0.0.0a0
+# # # # # >>>>>>> END NEW CODE (cbe515cd)
 # # # # =======
-# # #           - librmm==25.12.*,>=0.0.0a0
-# # # # >>>>>>> END NEW CODE (cbe515cd)
+# # #           - librmm==26.2.*,>=0.0.0a0
+# # # # >>>>>>> END NEW CODE (f7c03f69)
 # # # =======
-# #           - librmm==26.2.*,>=0.0.0a0
-# # # >>>>>>> END NEW CODE (f7c03f69)
+# #           - librmm==26.4.*,>=0.0.0a0
+# # # >>>>>>> END NEW CODE (a2f10bbf)
 # # =======
-#           - librmm==26.4.*,>=0.0.0a0
-# # >>>>>>> END NEW CODE (a2f10bbf)
 # =======
+          - &cmake_ver cmake>=4.0
+# >>>>>>> END NEW CODE (d2721ca8)
           - librmm==26.6.*,>=0.0.0a0
 # >>>>>>> END NEW CODE (2cb16e35)
           - ninja

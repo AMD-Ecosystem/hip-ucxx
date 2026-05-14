@@ -10,7 +10,12 @@
 # cmake-format: on
 # >>>>>>> END NEW CODE (f13787d6)
 # ======================================================================================================
-cmake_minimum_required(VERSION 3.30.4 FATAL_ERROR)
+# <<<<<<< OLD CODE from 2f530bdb (d2721ca8) - COMMENTED OUT
+# cmake_minimum_required(VERSION 3.26.4 FATAL_ERROR)
+# =======
+
+cmake_minimum_required(VERSION 4.0 FATAL_ERROR)
+# >>>>>>> END NEW CODE (d2721ca8)
 
 include(../../cmake/rapids_config.cmake)
 include(rapids-cmake)

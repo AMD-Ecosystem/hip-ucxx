@@ -1,6 +1,6 @@
 # =============================================================================
 # cmake-format: off
-# SPDX-FileCopyrightText: Copyright (c) 2021-2025, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2021-2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: BSD-3-Clause
 # cmake-format: on
 # =============================================================================
@@ -10,8 +10,13 @@
 #
 # This is the preferred entry point for projects using rapids-cmake
 #
-
-# cmake-lint: disable=W0106
+# <<<<<<< OLD CODE from 2f530bdb (d2721ca8) - COMMENTED OUT
+#
+# # cmake-lint: disable=W0106
+# =======
+# Enforce the minimum required CMake version for all users
+cmake_minimum_required(VERSION 4.0 FATAL_ERROR)
+# >>>>>>> END NEW CODE (d2721ca8)
 
 # Allow users to control which version is used
 if(DEFINED ENV{RAPIDS_CMAKE_VERSION})
