@@ -132,8 +132,12 @@ test = [
 # # >>>>>>> END NEW CODE (a2f10bbf)
 # =======
     "cudf==26.6.*,>=0.0.0a0",
-# >>>>>>> END NEW CODE (2cb16e35)
-    "cupy-cuda13x>=13.6.0",
+# <<<<<<< OLD CODE from a6a08876 (a72cfbf6) - COMMENTED OUT
+# # >>>>>>> END NEW CODE (2cb16e35)
+#     "cupy-cuda13x>=13.6.0",
+# =======
+    "cupy-cuda13x>=13.6.0,!=14.0.0,!=14.1.0",
+# >>>>>>> END NEW CODE (a72cfbf6)
     "numba-cuda>=0.22.1,<0.29.0",
     "pytest",
     "pytest-asyncio>=1.0.0",
