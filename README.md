@@ -293,7 +293,11 @@ variable.
 # Enable Python info log level
 UCXPY_LOG_LEVEL=INFO
 
-# Enable Python debug, UCXX request trace, and UCX data log levels together
+# <<<<<<< OLD CODE from 2b477dcf (4c2385ab) - COMMENTED OUT
+# # Enable Python debug, UCXX request trace, and UCX data log levels together
+# =======
+# Enable Python debug log level, UCXX request trace log level and UCX data log level 
+# >>>>>>> END NEW CODE (4c2385ab)
 UCXPY_LOG_LEVEL=DEBUG UCXX_LOG_LEVEL=TRACE_REQ UCX_LOG_LEVEL=DATA
 ```
 
