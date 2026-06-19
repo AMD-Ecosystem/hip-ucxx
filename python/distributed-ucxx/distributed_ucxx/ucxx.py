@@ -1,11 +1,6 @@
-# <<<<<<< OLD CODE from d35bb645 (8de78d24) - COMMENTED OUT
-# # SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES.
-# # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# # SPDX-License-Identifier: BSD-3-Clause AND MIT
-# =======
 # SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES.
-# SPDX-License-Identifier: BSD-3-Clause
-# >>>>>>> END NEW CODE (8de78d24)
+# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
 
 """
 :ref:`UCX`_ based communications for distributed.

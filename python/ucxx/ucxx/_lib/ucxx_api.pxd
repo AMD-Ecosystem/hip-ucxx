@@ -1,14 +1,6 @@
-# <<<<<<< OLD CODE from 44595307 (212e4ce2) - COMMENTED OUT
-# # SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-# # <<<<<<< OLD CODE from 55a3f79e (d51da485) - COMMENTED OUT
-# # # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# # # SPDX-License-Identifier: BSD-3-Clause AND MIT
-# # =======
-# =======
 # SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
-# >>>>>>> END NEW CODE (212e4ce2)
-# SPDX-License-Identifier: BSD-3-Clause
-# >>>>>>> END NEW CODE (d51da485)
+# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
 
 
 from posix cimport fcntl

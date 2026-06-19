@@ -1,21 +1,12 @@
 # ======================================================================================================
-# <<<<<<< OLD CODE from 538d7976 (f13787d6) - COMMENTED OUT
-# # SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# # SPDX-License-Identifier: BSD-3-Clause AND MIT
-# =======
 # cmake-format: off
 # SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
 # cmake-format: on
-# >>>>>>> END NEW CODE (f13787d6)
 # ======================================================================================================
-# <<<<<<< OLD CODE from 2f530bdb (d2721ca8) - COMMENTED OUT
-# cmake_minimum_required(VERSION 3.26.4 FATAL_ERROR)
-# =======
 
 cmake_minimum_required(VERSION 4.0 FATAL_ERROR)
-# >>>>>>> END NEW CODE (d2721ca8)
 
 include(../../cmake/rapids_config.cmake)
 include(rapids-cmake)
@@ -53,23 +44,17 @@ if(NOT DEFINED UCXX_BUILD_PYTHON_LIB)
   option(FIND_UCXX_CPP
          "Search for existing UCXX C++ installations before defaulting to local files" OFF
   )
-# <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
-#   if(FIND_UCXX_CPP)
-#     rapids_find_package(
-#       ucxx REQUIRED
-#       BUILD_EXPORT_SET ucxx-python-exports
-#       INSTALL_EXPORT_SET ucxx-python-exports
-#     )
-#   else()
-#     set(UCXX_ENABLE_RMM ON)
-#     add_subdirectory(.. ucxx-cpp)
-#   endif()
-# =======
-else()
-  set(UCXX_ENABLE_RMM ON)
-  set(UCXX_ENABLE_CCCL ON)
-  add_subdirectory(.. ucxx-cpp)
-# >>>>>>> END NEW CODE (03fbe7d5)
+  if(FIND_UCXX_CPP)
+    rapids_find_package(
+      ucxx REQUIRED
+      BUILD_EXPORT_SET ucxx-python-exports
+      INSTALL_EXPORT_SET ucxx-python-exports
+    )
+  else()
+    set(UCXX_ENABLE_RMM ON)
+    set(UCXX_ENABLE_CCCL ON)
+    add_subdirectory(.. ucxx-cpp)
+  endif()
 endif()
 
 rapids_find_package(

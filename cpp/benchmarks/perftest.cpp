@@ -1,12 +1,7 @@
 /**
-// <<<<<<< OLD CODE from 51f6e37d (22b1227f) - COMMENTED OUT
-//  * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-//  * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-//  * SPDX-License-Identifier: BSD-3-Clause AND MIT
-// =======
  * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
- * SPDX-License-Identifier: BSD-3-Clause
-// >>>>>>> END NEW CODE (22b1227f)
+ * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause AND MIT
  */
 #include <sched.h>   // for cpu_set_t, CPU_SET, CPU_ZERO, sched_setaffinity
 #include <unistd.h>  // for getopt, optarg

@@ -1,15 +1,7 @@
 /**
-// <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
-//  * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-// // <<<<<<< OLD CODE from e8dda90c (750afcbd) - COMMENTED OUT
-// //  * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-// //  * SPDX-License-Identifier: BSD-3-Clause AND MIT
-// // =======
-// =======
  * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
-// >>>>>>> END NEW CODE (03fbe7d5)
- * SPDX-License-Identifier: BSD-3-Clause
-// >>>>>>> END NEW CODE (750afcbd)
+ * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause AND MIT
  */
 #pragma once
 
@@ -361,7 +353,6 @@ class CCCLBuffer : public Buffer {
    * @return the void pointer to the device buffer.
    */
   [[nodiscard]] void* data() override;
-// >>>>>>> END NEW CODE (03fbe7d5)
 };
 #endif
 

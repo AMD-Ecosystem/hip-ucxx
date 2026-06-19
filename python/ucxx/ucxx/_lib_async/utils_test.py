@@ -1,11 +1,6 @@
-# <<<<<<< OLD CODE from 606ea7a2 (72acc5cc) - COMMENTED OUT
-# # SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-# # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# # SPDX-License-Identifier: BSD-3-Clause AND MIT
-# =======
 # SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
-# SPDX-License-Identifier: BSD-3-Clause
-# >>>>>>> END NEW CODE (72acc5cc)
+# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
 
 import asyncio
 import io
@@ -18,13 +13,9 @@ import pytest
 
 import ucxx
 
-# <<<<<<< OLD CODE from 662369b1 (77bc1759) - COMMENTED OUT
-# normal_cuda_env = {
-# =======
 from ucxx._lib_async.pytest_stash_keys import ASYNCIO_PLUGIN_TIMEOUT_STASH_KEY
 
-normal_env = {
-# >>>>>>> END NEW CODE (77bc1759)
+normal_cuda_env = {
     "UCX_RNDV_SCHEME": "put_zcopy",
     "UCX_MEMTYPE_CACHE": "n",
     "UCX_TLS": "rc,cuda_copy,cuda_ipc",

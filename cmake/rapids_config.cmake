@@ -1,11 +1,9 @@
 # =============================================================================
 # cmake-format: off
 # SPDX-FileCopyrightText: Copyright (c) 2018-2025, NVIDIA CORPORATION.
-# SPDX-License-Identifier: BSD-3-Clause
-# cmake-format: on
-# =============================================================================
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# SPDX-License-Identifier: Apache-2.0 AND MIT
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
+# cmake-format: on
 # =============================================================================
 
 file(READ "${CMAKE_CURRENT_LIST_DIR}/../ROCmDS_VERSION" _rocmds_version)
@@ -23,38 +21,20 @@ else()
   )
 endif()
 
-# <<<<<<< OLD CODE from 2c080795 (dfc637ef) - COMMENTED OUT
-# set(RAPIDS_CMAKE_MODULE_PATH
-#     $ENV{RAPIDS_CMAKE_MODULE_PATH}
-#     CACHE FILEPATH "Announce that ROCmDS-CMake is available via the provided module path."
-# )
-#
-# if(NOT "${RAPIDS_CMAKE_MODULE_PATH}" STREQUAL "")
-#   list(APPEND CMAKE_MODULE_PATH "${RAPIDS_CMAKE_MODULE_PATH}")
-#   # NOTE(HIP/AMD): Set rapids-cmake-dir variable
-#   set(rapids-cmake-dir "${RAPIDS_CMAKE_MODULE_PATH}")
-#   include(rapids-cmake)
-#   return()
-# endif()
-#
-# set(rapids-cmake-version "${ROCmDS_VERSION_MAJOR_MINOR}")
-# =======
-# Use STRINGS to trim whitespace/newlines
-file(STRINGS "${CMAKE_CURRENT_LIST_DIR}/../RAPIDS_BRANCH" _rapids_branch)
-if(NOT _rapids_branch)
-  message(
-    FATAL_ERROR
-      "Could not determine branch name to use for checking out rapids-cmake. The file \"${CMAKE_CURRENT_LIST_DIR}/../RAPIDS_BRANCH\" is missing."
-  )
+set(RAPIDS_CMAKE_MODULE_PATH
+    $ENV{RAPIDS_CMAKE_MODULE_PATH}
+    CACHE FILEPATH "Announce that ROCmDS-CMake is available via the provided module path."
+)
+
+if(NOT "${RAPIDS_CMAKE_MODULE_PATH}" STREQUAL "")
+  list(APPEND CMAKE_MODULE_PATH "${RAPIDS_CMAKE_MODULE_PATH}")
+  # NOTE(HIP/AMD): Set rapids-cmake-dir variable
+  set(rapids-cmake-dir "${RAPIDS_CMAKE_MODULE_PATH}")
+  include(rapids-cmake)
+  return()
 endif()
 
-if(NOT rapids-cmake-version)
-  set(rapids-cmake-version "${RAPIDS_VERSION_MAJOR_MINOR}")
-endif()
-if(NOT rapids-cmake-branch)
-  set(rapids-cmake-branch "${_rapids_branch}")
-endif()
-# >>>>>>> END NEW CODE (dfc637ef)
+set(rapids-cmake-version "${ROCmDS_VERSION_MAJOR_MINOR}")
 include("${CMAKE_CURRENT_LIST_DIR}/RAPIDS.cmake")
 
 # Don't use sccache-dist for CMake's compiler tests

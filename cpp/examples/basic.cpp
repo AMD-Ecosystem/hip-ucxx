@@ -113,11 +113,7 @@ enum class ProgressMode {
 
 struct args {
   ProgressMode progress_mode{ProgressMode::Polling};
-// <<<<<<< OLD CODE from e8dda90c (750afcbd) - COMMENTED OUT
-//   uint16_t listener_port{0};
-// =======
-  uint16_t listener_port{12345};
-// >>>>>>> END NEW CODE (750afcbd)
+  uint16_t listener_port{0};
   ucxx::BufferType send_buf_type{ucxx::BufferType::Host};
   ucxx::BufferType recv_buf_type{ucxx::BufferType::Host};
 
@@ -303,12 +299,8 @@ int main(int argc, char** argv)
   auto listener_ctx = std::make_unique<ListenerContext>(worker);
   auto listener     = worker->createListener(args.listener_port, listener_cb, listener_ctx.get());
   listener_ctx->setListener(listener);
-// <<<<<<< OLD CODE from e8dda90c (750afcbd) - COMMENTED OUT
-//   std::cout << "Listening on port " << listener->getPort() << std::endl;
-//   auto endpoint = worker->createEndpointFromHostname("127.0.0.1", listener->getPort(), true);
-// =======
-  auto endpoint = worker->createEndpointFromHostname("127.0.0.1", args.listener_port, true);
-// >>>>>>> END NEW CODE (750afcbd)
+  std::cout << "Listening on port " << listener->getPort() << std::endl;
+  auto endpoint = worker->createEndpointFromHostname("127.0.0.1", listener->getPort(), true);
 
   // Initialize worker progress
   if (args.progress_mode == ProgressMode::Blocking)

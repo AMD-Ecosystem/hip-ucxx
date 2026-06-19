@@ -72,17 +72,11 @@ def ucxx_setup_teardown():
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
-# <<<<<<< OLD CODE from 37579e17 (f1ce23f3) - COMMENTED OUT
-#         # pytest-asyncio may already have torn down the thread's loop.
-#         return
-#     if loop.is_running():
-# =======
         # Python 3.14+ raises if there is no event loop
         loop = None
     if loop is None:
         pass
     elif loop.is_running():
-# >>>>>>> END NEW CODE (f1ce23f3)
         # If loop is running, we can't run_until_complete
         # The cleanup will happen when the loop is closed
         pass

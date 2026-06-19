@@ -1,14 +1,8 @@
-# <<<<<<< OLD CODE from 5e4fc61f (7bad5b9e) - COMMENTED OUT
-# # SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-# # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# # SPDX-License-Identifier: BSD-3-Clause AND MIT
-# =======
 # SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
-# SPDX-License-Identifier: BSD-3-Clause
-# >>>>>>> END NEW CODE (7bad5b9e)
+# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
 
-"""UCXX: Python bindings for the Unified Communication X library
-(UCX <www.openucx.org>)"""
+"""UCXX: Python bindings for the Unified Communication X library (UCX <www.openucx.org>)"""
 
 import logging
 import os

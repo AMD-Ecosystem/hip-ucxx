@@ -1,12 +1,7 @@
 /**
-// <<<<<<< OLD CODE from 8f24eb81 (c3e522cc) - COMMENTED OUT
-//  * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-//  * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-//  * SPDX-License-Identifier: BSD-3-Clause AND MIT
-// =======
  * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
- * SPDX-License-Identifier: BSD-3-Clause
-// >>>>>>> END NEW CODE (c3e522cc)
+ * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause AND MIT
  */
 #include <algorithm>
 #include <memory>
@@ -125,11 +120,7 @@ class RequestTest : public ::testing::TestWithParam<
     }
 
     _memoryType =
-// <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
-//       (_bufferType == ucxx::BufferType::RMM) ? UCS_MEMORY_TYPE_RMM : UCS_MEMORY_TYPE_HOST;
-// =======
-      (_bufferType != ucxx::BufferType::Host) ? UCS_MEMORY_TYPE_CUDA : UCS_MEMORY_TYPE_HOST;
-// >>>>>>> END NEW CODE (03fbe7d5)
+      (_bufferType != ucxx::BufferType::Host) ? UCS_MEMORY_TYPE_RMM : UCS_MEMORY_TYPE_HOST;
     _messageSize = _messageLength * sizeof(int);
 
     _context = ucxx::createContext({{"RNDV_THRESH", std::to_string(_rndvThresh)}},
@@ -204,16 +195,12 @@ class RequestTest : public ::testing::TestWithParam<
     if (_memoryType == UCS_MEMORY_TYPE_HOST) {
       memcpy(dst, src, size);
 #if UCXX_ENABLE_RMM
-// <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
-//     } else if (_memoryType == UCS_MEMORY_TYPE_RMM) {
-// =======
-    } else if (_memoryType == UCS_MEMORY_TYPE_CUDA && _bufferType == ucxx::BufferType::RMM) {
-// >>>>>>> END NEW CODE (03fbe7d5)
+    } else if (_memoryType == UCS_MEMORY_TYPE_RMM && _bufferType == ucxx::BufferType::RMM) {
       RMM_CUDA_TRY(
         cudaMemcpyAsync(dst, src, size, cudaMemcpyDefault, rmm::cuda_stream_default.value()));
       if (synchronize) rmm::cuda_stream_default.synchronize();
 #endif
-    } else if (_memoryType == UCS_MEMORY_TYPE_CUDA) {
+    } else if (_memoryType == UCS_MEMORY_TYPE_RMM) {
       cudaMemcpyAsync(dst, src, size, cudaMemcpyDefault, nullptr);
       if (synchronize) cudaStreamSynchronize(nullptr);
     }
@@ -226,29 +213,20 @@ TEST_P(RequestTest, ProgressAm)
     GTEST_SKIP() << "Interrupting UCP worker progress operation in wait mode is not possible";
   }
 
-// <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
-//   if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_RMM) {
-// #if !UCXX_ENABLE_RMM
-//     GTEST_SKIP() << "UCXX was not built with RMM support";
-// #else
-//     _worker->registerAmAllocator(
-//       UCS_MEMORY_TYPE_RMM, [](size_t length) { return std::make_shared<ucxx::RMMBuffer>(length); });
-// =======
-  if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_CUDA) {
+  if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_RMM) {
 #if UCXX_ENABLE_RMM
     if (_bufferType == ucxx::BufferType::RMM) {
-      _worker->registerAmAllocator(UCS_MEMORY_TYPE_CUDA, [](size_t length) {
+      _worker->registerAmAllocator(UCS_MEMORY_TYPE_RMM, [](size_t length) {
         return std::make_shared<ucxx::RMMBuffer>(length);
       });
     }
 #endif
 #if UCXX_ENABLE_CCCL
     if (_bufferType == ucxx::BufferType::CCCL) {
-      _worker->registerAmAllocator(UCS_MEMORY_TYPE_CUDA, [](size_t length) {
+      _worker->registerAmAllocator(UCS_MEMORY_TYPE_RMM, [](size_t length) {
         return std::make_shared<ucxx::CCCLBuffer>(length);
       });
     }
-// >>>>>>> END NEW CODE (03fbe7d5)
 #endif
   }
 
@@ -350,7 +328,7 @@ TEST_P(RequestTest, ProgressAmMemoryTypePolicyStrict)
   std::vector<uint8_t> send(bytes, 42);
 
   auto amSendParams             = ucxx::AmSendParams{};
-  amSendParams.memoryType       = UCS_MEMORY_TYPE_CUDA;
+  amSendParams.memoryType       = UCS_MEMORY_TYPE_RMM;
   amSendParams.memoryTypePolicy = ucxx::AmSendMemoryTypePolicy::ErrorOnUnsupported;
 
   std::vector<std::shared_ptr<ucxx::Request>> requests;
@@ -373,29 +351,20 @@ TEST_P(RequestTest, ProgressAmReceiverCallback)
     GTEST_SKIP() << "Interrupting UCP worker progress operation in wait mode is not possible";
   }
 
-// <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
-//   if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_RMM) {
-// #if !UCXX_ENABLE_RMM
-//     GTEST_SKIP() << "UCXX was not built with RMM support";
-// #else
-//     _worker->registerAmAllocator(
-//       UCS_MEMORY_TYPE_RMM, [](size_t length) { return std::make_shared<ucxx::RMMBuffer>(length); });
-// =======
-  if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_CUDA) {
+  if (_registerCustomAmAllocator && _memoryType == UCS_MEMORY_TYPE_RMM) {
 #if UCXX_ENABLE_RMM
     if (_bufferType == ucxx::BufferType::RMM) {
-      _worker->registerAmAllocator(UCS_MEMORY_TYPE_CUDA, [](size_t length) {
+      _worker->registerAmAllocator(UCS_MEMORY_TYPE_RMM, [](size_t length) {
         return std::make_shared<ucxx::RMMBuffer>(length);
       });
     }
 #endif
 #if UCXX_ENABLE_CCCL
     if (_bufferType == ucxx::BufferType::CCCL) {
-      _worker->registerAmAllocator(UCS_MEMORY_TYPE_CUDA, [](size_t length) {
+      _worker->registerAmAllocator(UCS_MEMORY_TYPE_RMM, [](size_t length) {
         return std::make_shared<ucxx::CCCLBuffer>(length);
       });
     }
-// >>>>>>> END NEW CODE (03fbe7d5)
 #endif
   }
 

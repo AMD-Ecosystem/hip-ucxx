@@ -1,24 +1,12 @@
 # =================================================================================
 # cmake-format: off
-# <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
-# # SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-# # <<<<<<< OLD CODE from 538d7976 (f13787d6) - COMMENTED OUT
-# # # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# # # SPDX-License-Identifier: BSD-3-Clause AND MIT
-# # =======
-# =======
 # SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
-# >>>>>>> END NEW CODE (03fbe7d5)
-# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
 # cmake-format: on
-# >>>>>>> END NEW CODE (f13787d6)
 # =================================================================================
-# <<<<<<< OLD CODE from 2f530bdb (d2721ca8) - COMMENTED OUT
-# cmake_minimum_required(VERSION 3.26.4 FATAL_ERROR)
-# =======
 
 cmake_minimum_required(VERSION 4.0 FATAL_ERROR)
-# >>>>>>> END NEW CODE (d2721ca8)
 
 include(../cmake/rapids_config.cmake)
 include(rapids-cmake)

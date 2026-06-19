@@ -1,14 +1,9 @@
 # ======================================================================================================
-# <<<<<<< OLD CODE from 538d7976 (f13787d6) - COMMENTED OUT
-# # SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights
-# # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# # SPDX-License-Identifier: BSD-3-Clause AND MIT
-# =======
 # cmake-format: off
 # SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
 # cmake-format: on
-# >>>>>>> END NEW CODE (f13787d6)
 # ======================================================================================================
 
 find_package(Threads REQUIRED)
@@ -49,7 +44,6 @@ function(ConfigureBench CMAKE_BENCH_NAME)
     target_compile_definitions(${CMAKE_BENCH_NAME} PRIVATE UCXX_BENCHMARKS_ENABLE_CUDA)
     find_package(CUDAToolkit REQUIRED)
     target_link_libraries(${CMAKE_BENCH_NAME} PRIVATE CUDA::cudart_static)
-# >>>>>>> END NEW CODE (d6a7a028)
   endif()
 
   # RMM memory resources for CUDA benchmarks (requires UCXX_ENABLE_RMM and get_rmm.cmake)

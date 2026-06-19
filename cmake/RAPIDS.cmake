@@ -1,22 +1,17 @@
 # =============================================================================
 # cmake-format: off
 # SPDX-FileCopyrightText: Copyright (c) 2021-2026, NVIDIA CORPORATION.
-# SPDX-License-Identifier: BSD-3-Clause
-# cmake-format: on
-# =============================================================================
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# SPDX-License-Identifier: Apache-2.0 AND MIT
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
+# cmake-format: on
 # =============================================================================
 #
 # This is the preferred entry point for projects using rapids-cmake
 #
-# <<<<<<< OLD CODE from 2f530bdb (d2721ca8) - COMMENTED OUT
-#
-# # cmake-lint: disable=W0106
-# =======
-# Enforce the minimum required CMake version for all users
+
+# cmake-lint: disable=W0106
+
 cmake_minimum_required(VERSION 4.0 FATAL_ERROR)
-# >>>>>>> END NEW CODE (d2721ca8)
 
 # Allow users to control which version is used
 if(DEFINED ENV{RAPIDS_CMAKE_VERSION})
@@ -41,41 +36,20 @@ endif()
 
 # Allow users to control which branch is fetched
 if(NOT rapids-cmake-branch)
-# <<<<<<< OLD CODE from 3ab417f3 (1dc8822d) - COMMENTED OUT
-#   if(DEFINED ENV{RAPIDS_CMAKE_BRANCH})
-#     set(rapids-cmake-branch $ENV{RAPIDS_CMAKE_BRANCH})
-#   else()
-#     # Define a default branch if the user doesn't set one
-#     set(rapids-cmake-branch "release/rocmds-${rapids-cmake-version}")
-#   endif()
-# endif()
-#
-# if(NOT rapids-cmake-tag AND DEFINED ENV{RAPIDS_CMAKE_TAG})
-#   set(rapids-cmake-tag $ENV{RAPIDS_CMAKE_TAG})
-# endif()
-#
-# if(NOT rapids-cmake-sha AND DEFINED ENV{RAPIDS_CMAKE_SHA})
-#   set(rapids-cmake-sha $ENV{RAPIDS_CMAKE_SHA})
-# =======
-  # Define a default branch if the user doesn't set one
-# <<<<<<< OLD CODE from ef7a9d95 (2e3ce967) - COMMENTED OUT
-# # <<<<<<< OLD CODE from 0d8a05d5 (053ff54a) - COMMENTED OUT
-# # # <<<<<<< OLD CODE from ce52641f (8fef0088) - COMMENTED OUT
-# # # # <<<<<<< OLD CODE from 648b6351 (7acd222c) - COMMENTED OUT
-# # # #   set(rapids-cmake-branch "main")
-# # # # # >>>>>>> END NEW CODE (1dc8822d)
-# # # # =======
-# # #   set(rapids-cmake-branch "release/${rapids-cmake-version}")
-# # # # >>>>>>> END NEW CODE (7acd222c)
-# # # =======
-# #   set(rapids-cmake-branch "main")
-# # # >>>>>>> END NEW CODE (8fef0088)
-# # =======
-#   set(rapids-cmake-branch "release/${rapids-cmake-version}")
-# # >>>>>>> END NEW CODE (053ff54a)
-# =======
-  set(rapids-cmake-branch "main")
-# >>>>>>> END NEW CODE (2e3ce967)
+  if(DEFINED ENV{RAPIDS_CMAKE_BRANCH})
+    set(rapids-cmake-branch $ENV{RAPIDS_CMAKE_BRANCH})
+  else()
+    # Define a default branch if the user doesn't set one
+    set(rapids-cmake-branch "release/rocmds-${rapids-cmake-version}")
+  endif()
+endif()
+
+if(NOT rapids-cmake-tag AND DEFINED ENV{RAPIDS_CMAKE_TAG})
+  set(rapids-cmake-tag $ENV{RAPIDS_CMAKE_TAG})
+endif()
+
+if(NOT rapids-cmake-sha AND DEFINED ENV{RAPIDS_CMAKE_SHA})
+  set(rapids-cmake-sha $ENV{RAPIDS_CMAKE_SHA})
 endif()
 
 # Allow users to control the exact URL passed to FetchContent

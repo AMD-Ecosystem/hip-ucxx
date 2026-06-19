@@ -1,12 +1,7 @@
 /**
-// <<<<<<< OLD CODE from aa9547f6 (bac971f2) - COMMENTED OUT
-//  * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-//  * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-//  * SPDX-License-Identifier: BSD-3-Clause AND MIT
-// =======
  * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
- * SPDX-License-Identifier: BSD-3-Clause
-// >>>>>>> END NEW CODE (bac971f2)
+ * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+ * SPDX-License-Identifier: BSD-3-Clause AND MIT
  */
 #pragma once
 
@@ -23,10 +18,8 @@
 #ifdef UCXX_BENCHMARKS_ENABLE_CUDA
 #ifndef __HIP_PLATFORM_AMD__
 #include <cuda_runtime.h>
-// <<<<<<< OLD CODE from aa9547f6 (bac971f2) - COMMENTED OUT
-// #else
-// #include <ucxx/cuda_runtime.h>
-// =======
+#else
+#include <ucxx/cuda_runtime.h>
 #endif
 
 #ifdef UCXX_BENCHMARKS_ENABLE_RMM
@@ -38,7 +31,6 @@
 #include <rmm/mr/cuda_memory_resource.hpp>
 #include <rmm/mr/pool_memory_resource.hpp>
 #include <rmm/resource_ref.hpp>
-// >>>>>>> END NEW CODE (bac971f2)
 #endif
 
 #ifdef UCXX_BENCHMARKS_ENABLE_CUDA

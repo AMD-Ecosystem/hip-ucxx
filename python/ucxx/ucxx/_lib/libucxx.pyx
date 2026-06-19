@@ -1,12 +1,6 @@
-# <<<<<<< OLD CODE from 8de4fb4f (28b55d7d) - COMMENTED OUT
-# # SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
-# # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# # SPDX-License-Identifier: BSD-3-Clause AND MIT
-# =======
 # SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
-# SPDX-License-Identifier: BSD-3-Clause
-
-# >>>>>>> END NEW CODE (28b55d7d)
+# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
 
 import asyncio
 import enum
@@ -707,12 +701,6 @@ cdef class UCXWorker():
             self._enable_python_future = self._worker.get().isFutureEnabled()
 
             if self._context_feature_flags & UCP_FEATURE_AM:
-# <<<<<<< OLD CODE from 6873e25c (03fbe7d5) - COMMENTED OUT
-#                 rmm_am_allocator = <AmAllocatorType>(&_rmm_am_allocator)
-#                 self._worker.get().registerAmAllocator(
-#                     UCS_MEMORY_TYPE_ROCM, rmm_am_allocator
-#                 )
-# =======
                 if self._worker.get().getCudaBufferType() == BufferType.RMM:
                     with gil:
                         warnings.warn(
@@ -726,14 +714,13 @@ cdef class UCXWorker():
                         )
                     rmm_am_allocator = <AmAllocatorType>(&_rmm_am_allocator)
                     self._worker.get().registerAmAllocator(
-                        UCS_MEMORY_TYPE_CUDA, rmm_am_allocator
+                        UCS_MEMORY_TYPE_ROCM, rmm_am_allocator
                     )
                 elif self._worker.get().getCudaBufferType() == BufferType.CCCL:
                     cccl_am_allocator = <AmAllocatorType>(&_cccl_am_allocator)
                     self._worker.get().registerAmAllocator(
                         UCS_MEMORY_TYPE_CUDA, cccl_am_allocator
                     )
-# >>>>>>> END NEW CODE (03fbe7d5)
 
     def __dealloc__(self) -> None:
         with nogil:
