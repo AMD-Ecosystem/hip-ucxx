@@ -31,7 +31,7 @@ from libcpp.string_view cimport string_view
 from libcpp.utility cimport move
 from libcpp.vector cimport vector
 
-cdef extern from "cuda_runtime.h" nogil:
+cdef extern from "ucxx/cuda_runtime.h" nogil:
     enum cudaMemcpyKind:
         cudaMemcpyDeviceToHost
     int cudaMemcpy(void* dst, const void* src, size_t count,
@@ -719,7 +719,7 @@ cdef class UCXWorker():
                 elif self._worker.get().getCudaBufferType() == BufferType.CCCL:
                     cccl_am_allocator = <AmAllocatorType>(&_cccl_am_allocator)
                     self._worker.get().registerAmAllocator(
-                        UCS_MEMORY_TYPE_CUDA, cccl_am_allocator
+                        UCS_MEMORY_TYPE_ROCM, cccl_am_allocator
                     )
 
     def __dealloc__(self) -> None:

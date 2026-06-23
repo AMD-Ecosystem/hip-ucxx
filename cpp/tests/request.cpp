@@ -27,7 +27,7 @@
 #endif
 
 #if UCXX_ENABLE_CCCL
-#include <cuda_runtime.h>
+#include <ucxx/cuda_runtime.h>
 #endif
 
 namespace {
@@ -570,7 +570,7 @@ TEST_P(RequestTest, ProgressTagRequestAttributes)
     auto debugString = request->queryAttributes().debugString;
     ASSERT_THAT(debugString, ::testing::HasSubstr("length " + std::to_string(_messageSize)));
     ASSERT_THAT(debugString,
-                ::testing::HasSubstr(_memoryType == UCS_MEMORY_TYPE_HOST ? "host" : "cuda"));
+                ::testing::HasSubstr(_memoryType == UCS_MEMORY_TYPE_HOST ? "host" : "rocm"));
   }
 
   copyResults();

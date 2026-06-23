@@ -23,7 +23,7 @@ requires-python = ">=3.11"
 dependencies = [
     "numba-hip",
     "pyyaml>=6",
-    "amd-hipucxx==0.1.*",
+    "amd-hipucxx==0.2.*",
 ]
 classifiers = [
     "Intended Audience :: Developers",

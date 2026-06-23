@@ -29,12 +29,9 @@
 #include <vector>
 
 #ifdef UCXX_BENCHMARKS_ENABLE_CUDA
-#ifndef __HIP_PLATFORM_AMD__
-#include <cuda_runtime.h>
-#else
 #include <ucxx/cuda_runtime.h>
 #endif
-#endif
+
 
 #include <ucxx/api.h>
 #include <ucxx/utils/sockaddr.h>
@@ -59,15 +56,14 @@
 
 #ifdef UCXX_BENCHMARKS_ENABLE_CUDA
 #define CUDA_EXIT_ON_ERROR(operation, context)                                                  \
-  ([&]() {                                                                                      \
+  {                                                                                             \
     cudaError_t err = operation;                                                                \
     if (err != cudaSuccess) {                                                                   \
       std::cerr << "CUDA error in " << context << " at " << __FILE__ << ":" << __LINE__ << ": " \
                 << cudaGetErrorString(err) << std::endl;                                        \
       std::exit(-1);                                                                            \
     }                                                                                           \
-    return err;                                                                                 \
-  })()
+  }
 #endif
 
 enum class ProgressMode {

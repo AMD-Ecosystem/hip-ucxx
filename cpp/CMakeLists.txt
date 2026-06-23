@@ -190,9 +190,8 @@ endif()
 
 # Enable CCCL if necessary
 if(UCXX_ENABLE_CCCL)
-  find_package(CUDAToolkit REQUIRED)
   target_compile_definitions(ucxx PUBLIC UCXX_ENABLE_CCCL)
-  target_link_libraries(ucxx PRIVATE CCCL::CCCL CUDA::cudart_static)
+  target_link_libraries(ucxx PRIVATE CCCL::CCCL)
   target_sources(ucxx PRIVATE src/buffer_cccl.cpp)
 endif()
 
@@ -325,9 +324,8 @@ endif()
 # ##################################################################################################
 # * packaging using CPACK --------------------------------------------------------------------------
 
-install(
-  FILES ${CMAKE_CURRENT_LIST_DIR}/../LICENSE ${CMAKE_CURRENT_LIST_DIR}/../NOTICE.txt
-  DESTINATION ${CMAKE_INSTALL_DOCDIR}
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/../LICENSE ${CMAKE_CURRENT_LIST_DIR}/../NOTICE.txt
+        DESTINATION ${CMAKE_INSTALL_DOCDIR}
 )
 
 set(CPACK_PACKAGE_NAME "libhipucxx")
@@ -341,7 +339,10 @@ set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/ROCm-DS/hip-ucxx")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_LIST_DIR}/../LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_LIST_DIR}/../README.md")
 
-set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/rocm-ds" CACHE PATH "Package install prefix.")
+set(CPACK_PACKAGING_INSTALL_PREFIX
+    "/opt/rocm-ds"
+    CACHE PATH "Package install prefix."
+)
 
 set(CPACK_GENERATOR "RPM")
 set(CPACK_RPM_PACKAGE_LICENSE "BSD-3-Clause AND MIT")

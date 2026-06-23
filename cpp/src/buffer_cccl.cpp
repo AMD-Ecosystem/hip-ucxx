@@ -12,7 +12,7 @@
 #include <cuda/buffer>
 #include <cuda/memory_resource>
 
-#include <cuda_runtime_api.h>
+#include <ucxx/cuda_runtime.h>
 
 namespace ucxx {
 
@@ -28,7 +28,7 @@ struct CCCLBufferImpl {
   // CCCL needs explicit initialization. cudaFree(0) is the standard zero-cost idiom.
   static auto get_device_pool()
   {
-    cudaFree(0);  // Ensure CUDA primary context is initialized
+    static_cast<void>(cudaFree(0));  // Ensure CUDA primary context is initialized
     return ::cuda::device_default_memory_pool(::cuda::device_ref{0});
   }
 
