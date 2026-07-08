@@ -27,6 +27,8 @@ dependencies = [
     "numba-hip",
     "numpy>=1.23,<3.0a0",
     "amd-hipmm==5.0.*",
+    "hip-python==7.13.*",
+    "hip-python-interop==7.13.*",
 ]
 classifiers = [
     "Intended Audience :: Developers",
