@@ -4,6 +4,16 @@
 # SPDX-License-Identifier: MIT
 
 # Build Python wheels and copy them to BUILD_ARTIFACTS_DIR.
+#
+# Optional environment variables:
+#   HIPUCXX_WHEEL_TARGETS -- build.hip.sh targets to build (default: py-all)
+#   HIPUCXX_WHEEL_PY_API  -- wheel.py-api for the ucxx wheel; a CPython tag such
+#                            as cp312 builds against the stable ABI, an empty
+#                            value clears any pin. Unset leaves it to the
+#                            pyproject files.
+#   HIPUCXX_WHEEL_PLATFORM_RETAG -- when 1, replace the generic linux_x86_64
+#                            platform tag with the manylinux tag auditwheel
+#                            reports. Only meaningful in a manylinux image.
 
 set -xeu
 
@@ -35,7 +45,8 @@ src_dir="${SRC_DIR}/${PROJECT_ID}"
 build_dir="${BUILD_DIR}/${PROJECT_ID}"
 install_prefix="${CMAKE_INSTALL_PREFIX:-${INSTALL_DIR}/${PROJECT_ID}}"
 
-build_args=(py-all -n)
+read -ra wheel_targets <<< "${HIPUCXX_WHEEL_TARGETS:-py-all}"
+build_args=("${wheel_targets[@]}" -n)
 
 [[ "${HIPUCXX_DEBUG_BUILD:-false}" == "true" ]] && build_args+=(-g)
 
@@ -43,6 +54,11 @@ if [ -n "${HIPUCXX_GPU_ARCHS:-}" ]; then
     build_args+=(--gpu-archs "${HIPUCXX_GPU_ARCHS}")
 elif [ -n "${AMDGPU_TARGETS:-}" ]; then
     build_args+=(--gpu-archs "${AMDGPU_TARGETS}")
+fi
+
+# Set, not just non-empty: an empty value clears a pyproject pin.
+if [ -n "${HIPUCXX_WHEEL_PY_API+set}" ]; then
+    build_args+=(--py-api "${HIPUCXX_WHEEL_PY_API}")
 fi
 
 build_args+=(
@@ -57,4 +73,23 @@ wheel_dir="${build_dir}/python/dist"
 if [ -d "${wheel_dir}" ] && compgen -G "${wheel_dir}/*.whl" > /dev/null; then
     mkdir -p "${BUILD_ARTIFACTS_DIR}"
     cp -v "${wheel_dir}"/*.whl "${BUILD_ARTIFACTS_DIR}/"
+fi
+
+# Retag rather than repair: the wheels are meant to keep loading the libraries
+# they were built against, so nothing is vendored in, only the platform tag is
+# corrected from the generic linux_x86_64 that setuptools writes.
+if [[ "${HIPUCXX_WHEEL_PLATFORM_RETAG:-0}" == "1" ]]; then
+    pip install auditwheel
+
+    shopt -s nullglob
+    for wheel in "${BUILD_ARTIFACTS_DIR}"/*-linux_x86_64.whl; do
+        platform_tag=$(python -m auditwheel show "${wheel}" \
+            | grep -o 'platform tag to ".\+"' | cut -d '"' -f 2)
+        if [ -z "${platform_tag}" ]; then
+            echo "ERROR: auditwheel reported no platform tag for ${wheel}" >&2
+            exit 1
+        fi
+        mv -v "${wheel}" "${wheel/linux_x86_64/${platform_tag}}"
+    done
+    shopt -u nullglob
 fi

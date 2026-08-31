@@ -4,6 +4,12 @@
 # SPDX-License-Identifier: MIT
 
 # Run Python tests/benchmarks selected via HIPUCXX_TARGETS (py_* tokens).
+#
+# Optional environment variables:
+#   HIPUCXX_TEST_REQUIREMENTS -- pip requirements file with the third-party test
+#                            dependencies. Images that pin those versions
+#                            themselves, rather than pooling them as wheels in
+#                            BUILD_ARTIFACTS_DIR, hand them over this way.
 
 set -xeu
 
@@ -17,10 +23,33 @@ setup_build_environment
 
 pip install pytest pytest-timeout
 install_python_wheels_from_artifacts
-pip install --find-links "${BUILD_ARTIFACTS_DIR}" \
-    "${BUILD_ARTIFACTS_DIR}"/amd_libhipucxx*.whl \
-    "$(echo ${BUILD_ARTIFACTS_DIR}/amd_hipucxx*.whl)[test]" \
-    "${BUILD_ARTIFACTS_DIR}"/amd_distributed_hipucxx*.whl
+
+if [ -n "${HIPUCXX_TEST_REQUIREMENTS:-}" ]; then
+    pip install -r "${HIPUCXX_TEST_REQUIREMENTS}"
+fi
+
+# By distribution rather than by file, so this interpreter takes the wheel
+# tagged for it out of a pool that may cover several, instead of pip rejecting a
+# file it was handed.
+specs=()
+shopt -s nullglob
+for wheel in "${BUILD_ARTIFACTS_DIR}"/*hipucxx*.whl; do
+    # {name}-{version}-{optional build tag}-{python}-{abi}-{platform}.whl
+    IFS=- read -r dist version _ <<< "$(basename "${wheel}")"
+    [[ "${dist}" == "amd_hipucxx" ]] && dist="amd_hipucxx[test]"
+    specs+=("${dist}==${version}")
+done
+shopt -u nullglob
+
+if [ ${#specs[@]} -eq 0 ]; then
+    echo "ERROR: no hipUCXX wheels in ${BUILD_ARTIFACTS_DIR}; nothing to test." >&2
+    exit 1
+fi
+
+# Each distribution named once, however many tags the pool holds for it.
+mapfile -t specs < <(printf '%s\n' "${specs[@]}" | sort -u)
+
+pip install --find-links "${BUILD_ARTIFACTS_DIR}" "${specs[@]}"
 
 src_dir="${SRC_DIR}/${PROJECT_ID}"
 build_dir="${BUILD_DIR}/${PROJECT_ID}"
