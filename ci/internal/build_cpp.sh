@@ -33,6 +33,9 @@ fi
 if hipucxx_has_target cxx_bench; then
     build_args+=(libucxx-bench)
 fi
+if hipucxx_has_target cxx_py_api; then
+    build_args+=(libucxx-py-api)
+fi
 
 [[ "${HIPUCXX_DEBUG_BUILD:-false}" == "true" ]] && build_args+=(-g)
 

@@ -14,6 +14,12 @@
 #   HIPUCXX_WHEEL_PLATFORM_RETAG -- when 1, replace the generic linux_x86_64
 #                            platform tag with the manylinux tag auditwheel
 #                            reports. Only meaningful in a manylinux image.
+#   HIPUCXX_WHEEL_REQUIREMENTS -- pip requirements file with the build-time
+#                            dependencies whose versions the caller pins, the
+#                            hip-python and hipMM wheels ucxx/_lib cimports
+#                            among them. Images that carry those pins, rather
+#                            than pooling the wheels in BUILD_ARTIFACTS_DIR,
+#                            hand them over this way.
 
 set -xeu
 
@@ -44,6 +50,10 @@ src_dir="${SRC_DIR}/${PROJECT_ID}"
 # shellcheck disable=SC2153  # BUILD_DIR is a CI env var, not a typo of build_dir
 build_dir="${BUILD_DIR}/${PROJECT_ID}"
 install_prefix="${CMAKE_INSTALL_PREFIX:-${INSTALL_DIR}/${PROJECT_ID}}"
+
+if [ -n "${HIPUCXX_WHEEL_REQUIREMENTS:-}" ]; then
+    pip install -r "${HIPUCXX_WHEEL_REQUIREMENTS}"
+fi
 
 read -ra wheel_targets <<< "${HIPUCXX_WHEEL_TARGETS:-py-all}"
 build_args=("${wheel_targets[@]}" -n)
