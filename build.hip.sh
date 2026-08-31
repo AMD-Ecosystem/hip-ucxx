@@ -62,6 +62,12 @@ Build options:
                           build or install directory.
     --gpu-archs         - GPU architectures to target (options: rapids,
                           native (default), or a comma-separated list)
+    --py-api            - wheel.py-api for the 'ucxx' wheel, the only one with
+                          compiled extensions. A CPython tag such as 'cp312'
+                          builds against the stable ABI and tags the wheel
+                          cp312-abi3, which also installs on later CPythons; an
+                          empty value clears any pin, for a tag specific to the
+                          building interpreter
     -j                  - specify number of jobs for parallel builds
     -v                  - enable verbose build output
     -g                  - build with debug settings
@@ -84,6 +90,7 @@ NOTE: Corresponding command line options will override these.
     UCXX_HIP_COMPILER      - specify the HIP compiler (default is 'hipcc')
     UCXX_HIP_ARCHITECTURES - specify the gpu archs (--gpu-archs),
                              overrides RAPIDS_CMAKE_HIP_ARCHITECTURES
+    UCXX_WHEEL_PY_API      - for --py-api
 EOF
 
     echo ""
@@ -115,6 +122,11 @@ GPU_ARCHS=${UCXX_HIP_ARCHITECTURES:=${RAPIDS_CMAKE_HIP_ARCHITECTURES:="NATIVE"}}
 PARALLEL_LEVEL=${PARALLEL_LEVEL:=$(nproc)}
 HIP_COMPILER=${UCXX_HIP_COMPILER:-"hipcc"}
 
+# Empty is a meaningful value here, it clears a pyproject pin, so track whether
+# the setting was given at all rather than whether it is non-empty.
+WHEEL_PY_API=${UCXX_WHEEL_PY_API:-}
+WHEEL_PY_API_GIVEN=${UCXX_WHEEL_PY_API+1}
+
 # process the flags and arguments
 TARGETS=()
 while [[ $# -gt 0 ]]; do
@@ -132,6 +144,8 @@ while [[ $# -gt 0 ]]; do
         --find-libucxx) FIND_LIBUCXX=1; shift ;;
         --gpu-archs) GPU_ARCHS="$(processGpuArchs "$2")"; shift 2 ;;
         --gpu-archs=*) GPU_ARCHS="$(processGpuArchs "${1#*=}")"; shift ;;
+        --py-api) WHEEL_PY_API="$2"; WHEEL_PY_API_GIVEN=1; shift 2 ;;
+        --py-api=*) WHEEL_PY_API="${1#*=}"; WHEEL_PY_API_GIVEN=1; shift ;;
         -h|--help) printHelp; exit 0 ;;
         -*) echo "Unknown option: $1" >&2; exit 1 ;;
         *) TARGETS+=("$1"); shift ;;
@@ -244,6 +258,9 @@ if hasTarget ucxx; then
 fi
 if [[ -n ${WHEEL_TAG} ]]; then
     echo "wheel_tag : ${WHEEL_TAG}"
+fi
+if [[ -n ${WHEEL_PY_API_GIVEN} ]]; then
+    echo "ucxx wheel.py-api: ${WHEEL_PY_API:-<cleared>}"
 fi
 if [[ -n ${PYTHON_DIST_DIR} ]]; then
     echo "wheels output folder: ${PYTHON_DIST_DIR}"
@@ -375,6 +392,11 @@ if hasTarget ucxx; then
     fi
     if hasTarget ucxx-cython-tests; then
         CONFIG_SETTINGS+=("skbuild.cmake.define.UCXX_BUILD_TESTS=ON")
+    fi
+    # Only this module: libucxx pins py3 in its pyproject and carries no
+    # extension, and distributed-ucxx is pure Python.
+    if [[ -n ${WHEEL_PY_API_GIVEN} ]]; then
+        CONFIG_SETTINGS+=("skbuild.wheel.py-api=${WHEEL_PY_API}")
     fi
 
     if (( NO_INSTALL )); then
