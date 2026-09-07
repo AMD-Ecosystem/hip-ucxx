@@ -12,12 +12,12 @@ set -euo pipefail
 pip install --upgrade pip
 pip install cloudpickle pytest pytest-timeout pytest-asyncio "pytest-rerunfailures!=16.0.0"
 
-# Wheel/runtime deps staged from upstream ci_packages (hip-python, hipmm, cupy).
+# Wheel/runtime deps staged from upstream ci_packages (hip-python, hipmm).
+# tmpfix: amd-cupy disabled while debugging the integration build.
 # hipUCXX wheels are installed separately by test-wheels.sh.
 pip install --no-deps \
     --find-links "${BUILD_ARTIFACTS_DIR}" \
     amd-rocmds-logger \
-    amd-cupy \
     rocm-bindings-core \
     rocm-bindings-hip \
     hip-python-interop \
