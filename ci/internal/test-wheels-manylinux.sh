@@ -4,30 +4,19 @@
 # SPDX-License-Identifier: MIT
 
 # Run the hipUCXX Python suite once per supported interpreter, against the wheel
-# pool build_wheels_manylinux.sh produced.
+# pool build-wheels-manylinux.sh produced.
 #
 # The pool holds two amd_hipucxx tag families, cp311-cp311 and cp312-abi3, and
 # each interpreter is served by exactly one of them. Nothing here decides which:
-# test_python.sh asks pip for the distributions by name and pip matches the
+# test-wheels.sh asks pip for the distributions by name and pip matches the
 # tags, so 3.13 lands on the abi3 wheel for free. That is the point of the abi3
 # entry, and the reason 3.13 is tested here without being built for.
 #
-# An interpreter the image does not carry is reported as MISSING and fails the
-# run at the end rather than at the point of discovery, so one run still says
-# what every other interpreter did. Same reason the loop does not stop at the
-# first failing suite: a wheel set broken on one version alone is worth seeing
-# as such.
-#
 # The C++ suite is not driven from here. It is interpreter-independent, so
-# test_cpp.sh runs once, beside this script rather than inside it.
-#
-# Manylinux-specific by construction, like its build-side sibling: the
-# interpreters come from /opt/python/cp<xy>-cp<xy>, which is a manylinux layout.
+# test-cpp.sh runs once, beside this script rather than inside it.
 #
 # Required environment variables:
 #   PROJECT_ID, SRC_DIR, BUILD_DIR, INSTALL_DIR, BUILD_ARTIFACTS_DIR
-#   HIPUCXX_TARGETS, and everything else test_python.sh reads, is passed through
-#   untouched.
 #
 # Optional environment variables:
 #   HIPUCXX_TEST_PYTHONS -- whitespace-separated CPython versions to test
@@ -42,8 +31,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 : "${INSTALL_DIR:?INSTALL_DIR must be set}"
 : "${BUILD_ARTIFACTS_DIR:?BUILD_ARTIFACTS_DIR must be set}"
 
-# test_python.sh reads these from the environment, and a caller that assigned
-# them without exporting would otherwise hand it nothing.
 export PROJECT_ID SRC_DIR BUILD_DIR INSTALL_DIR BUILD_ARTIFACTS_DIR
 
 test_pythons=${HIPUCXX_TEST_PYTHONS:-"3.11 3.12 3.13"}
@@ -70,9 +57,7 @@ for python_version in ${test_pythons}; do
     continue
   fi
 
-  # Its own venv per interpreter: test_python.sh recreates
-  # ${INSTALL_DIR}/venv/hipucxx with --clear from the python3 it finds on PATH.
-  if PATH="${python_bin}:${base_path}" "${SCRIPT_DIR}/test_python.sh"; then
+  if PATH="${python_bin}:${base_path}" "${SCRIPT_DIR}/test-wheels.sh"; then
     statuses+=("PASS")
   else
     statuses+=("FAIL")

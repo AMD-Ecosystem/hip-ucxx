@@ -5,7 +5,7 @@
 
 # Build the hipUCXX wheel matrix inside a manylinux container.
 #
-# One build_wheels.sh pass per matrix entry, all writing into the same
+# One build-wheels.sh pass per matrix entry, all writing into the same
 # BUILD_ARTIFACTS_DIR, so the stage ends with a single wheel pool that covers
 # the whole supported interpreter range:
 #
@@ -32,7 +32,7 @@
 #
 # Required environment variables:
 #   PROJECT_ID, SRC_DIR, BUILD_DIR, INSTALL_DIR, BUILD_ARTIFACTS_DIR
-#   Everything else build_wheels.sh reads (AMDGPU_TARGETS, CMAKE_VERSION,
+#   Everything else build-wheels.sh reads (AMDGPU_TARGETS, CMAKE_VERSION,
 #   HIPUCXX_GPU_ARCHS, ...) is passed through untouched. BUILD_DIR and the
 #   HIPUCXX_WHEEL_* switches are the exceptions: this script sets them per pass.
 
@@ -45,21 +45,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 : "${INSTALL_DIR:?INSTALL_DIR must be set}"
 : "${BUILD_ARTIFACTS_DIR:?BUILD_ARTIFACTS_DIR must be set}"
 
-# build_wheels.sh reads these from the environment, and a caller that assigned
-# them without exporting would otherwise hand it nothing.
 export PROJECT_ID SRC_DIR INSTALL_DIR BUILD_ARTIFACTS_DIR
 
 mkdir -p "${BUILD_ARTIFACTS_DIR}"
-
-### the matrix, and the interpreters it needs
-#
-# The floor "no" clears any wheel.py-api pin, for a tag specific to the building
-# interpreter. 3.12 carries the abi3 floor, so 3.13 and later install its wheel
-# and need no pass of their own. No 3.10, even though python/ucxx still allows
-# it: the range starts where the rest of ROCm-DS starts.
-#
-# A version this image does not carry should fail in seconds rather than after
-# the first pass has spent an hour compiling.
 
 python_versions=(3.11 3.12)
 sabi_floors=(no 3.12)
@@ -76,11 +64,6 @@ for python_version in "${python_versions[@]}"; do
     exit 1
   fi
 done
-
-### build
-#
-# Its own BUILD_DIR per pass: the passes differ in interpreter, and a cmake
-# cache configured for the one before would be picked up by the next.
 
 base_path=${PATH}
 
@@ -104,14 +87,8 @@ for i in "${!python_versions[@]}"; do
   BUILD_DIR="${BUILD_DIR}/${tag}" \
   HIPUCXX_WHEEL_PY_API="${py_api}" \
   HIPUCXX_WHEEL_PLATFORM_RETAG=1 \
-    "${SCRIPT_DIR}/build_wheels.sh"
+    "${SCRIPT_DIR}/build-wheels.sh"
 done
-
-### verify the matrix produced the tags it promised
-#
-# The build is long and its failure modes are quiet: a missing tag only surfaces
-# as an unsatisfiable install in the test stage, a stage and a container later.
-# Check here, where the build log is still at hand.
 
 shopt -s nullglob
 
@@ -129,9 +106,6 @@ for dist in amd_libhipucxx amd_distributed_hipucxx; do
   fi
 done
 
-# A floor above the building interpreter is not an error to scikit-build-core,
-# it silently drops back to a version-specific tag, and this is where such an
-# entry would surface.
 for i in "${!expected_tags[@]}"; do
   expected_tag=${expected_tags[${i}]}
 

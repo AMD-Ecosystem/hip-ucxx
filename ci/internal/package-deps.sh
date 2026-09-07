@@ -6,18 +6,18 @@
 set -xeu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=_package-utils.sh
-. "${SCRIPT_DIR}/_package-utils.sh"
+# shellcheck source=_build-preamble.sh
+. "${SCRIPT_DIR}/_build-preamble.sh"
+# shellcheck source=_install-artifact-deps.sh
+. "${SCRIPT_DIR}/_install-artifact-deps.sh"
 
-# we use pip to install more recent versions of cmake and ninja
-activate_python_environment
+activate_hipucxx_python_environment
 
 setup_build_environment
 
 pkg_fmt=$(package_format)
 parallel="${PARALLEL_LEVEL:-${MAX_JOBS:-$(nproc)}}"
 
-# --- hipmm: CPack from existing C++ build tree ---
 hipmm_build="${BUILD_DIR}/hipmm/cpp/build"
 if [[ ! -d "${hipmm_build}" ]]; then
     echo "ERROR: hipmm C++ build dir missing (${hipmm_build}); run hipmm-build-dev first" >&2
@@ -30,7 +30,6 @@ cmake "${hipmm_build}" -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=ON
     cpack -G "${pkg_fmt}"
 )
 
-# --- rocmds_logger: configure, build, and CPack under /build/rocmds_logger ---
 logger_src="${BUILD_DIR}/rocmds_logger"
 if [[ ! -d "${logger_src}" ]]; then
     echo "ERROR: rocmds_logger source dir missing (${logger_src}); run rocmds_logger-build-dev first" >&2

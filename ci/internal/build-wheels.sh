@@ -24,10 +24,14 @@
 set -xeu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=_package-utils.sh
-. "${SCRIPT_DIR}/_package-utils.sh"
+# shellcheck source=_build-preamble.sh
+. "${SCRIPT_DIR}/_build-preamble.sh"
+# shellcheck source=_install-artifact-deps.sh
+. "${SCRIPT_DIR}/_install-artifact-deps.sh"
+# shellcheck source=_wheel-helpers.sh
+. "${SCRIPT_DIR}/_wheel-helpers.sh"
 
-activate_python_environment
+activate_hipucxx_python_environment
 
 setup_build_environment
 # libhipcxx is a dependency to build the Python wheels
@@ -85,21 +89,6 @@ if [ -d "${wheel_dir}" ] && compgen -G "${wheel_dir}/*.whl" > /dev/null; then
     cp -v "${wheel_dir}"/*.whl "${BUILD_ARTIFACTS_DIR}/"
 fi
 
-# Retag rather than repair: the wheels are meant to keep loading the libraries
-# they were built against, so nothing is vendored in, only the platform tag is
-# corrected from the generic linux_x86_64 that setuptools writes.
 if [[ "${HIPUCXX_WHEEL_PLATFORM_RETAG:-0}" == "1" ]]; then
-    pip install auditwheel
-
-    shopt -s nullglob
-    for wheel in "${BUILD_ARTIFACTS_DIR}"/*-linux_x86_64.whl; do
-        platform_tag=$(python -m auditwheel show "${wheel}" \
-            | grep -o 'platform tag to ".\+"' | cut -d '"' -f 2)
-        if [ -z "${platform_tag}" ]; then
-            echo "ERROR: auditwheel reported no platform tag for ${wheel}" >&2
-            exit 1
-        fi
-        mv -v "${wheel}" "${wheel/linux_x86_64/${platform_tag}}"
-    done
-    shopt -u nullglob
+    retag_linux_wheels
 fi

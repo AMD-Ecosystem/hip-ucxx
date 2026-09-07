@@ -8,11 +8,12 @@
 set -xeu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=_package-utils.sh
-. "${SCRIPT_DIR}/_package-utils.sh"
+# shellcheck source=_build-preamble.sh
+. "${SCRIPT_DIR}/_build-preamble.sh"
+# shellcheck source=_install-artifact-deps.sh
+. "${SCRIPT_DIR}/_install-artifact-deps.sh"
 
-# we use pip to install more recent versions of cmake and ninja
-activate_python_environment
+activate_hipucxx_python_environment
 
 setup_build_environment
 pip install packaging

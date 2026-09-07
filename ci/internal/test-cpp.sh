@@ -8,8 +8,10 @@
 set -xeu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=_package-utils.sh
-. "${SCRIPT_DIR}/_package-utils.sh"
+# shellcheck source=_activate-env.sh
+. "${SCRIPT_DIR}/_activate-env.sh"
+# shellcheck source=_install-artifact-deps.sh
+. "${SCRIPT_DIR}/_install-artifact-deps.sh"
 
 install_cpp_packages_from_artifacts
 
