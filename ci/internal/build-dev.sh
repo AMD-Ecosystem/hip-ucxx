@@ -62,6 +62,10 @@ build_args+=(
     --install-prefix "${install_prefix}"
 )
 
+if [[ "${#cmake_args[@]}" -gt 0 ]]; then
+    build_args+=(--cmake-args="${cmake_args[*]}")
+fi
+
 cd "${src_dir}"
 ./build.hip.sh "${build_args[@]}"
 

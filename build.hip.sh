@@ -73,6 +73,7 @@ Build options:
     -g                  - build with debug settings
     -n                  - skip install step (builds wheels for Python modules)
     -c                  - generate compile_commands.json
+    --cmake-args        - extra CMake configure options (quoted string of flags)
 
 Help:
     -h | --help         - show this help text
@@ -127,6 +128,8 @@ HIP_COMPILER=${UCXX_HIP_COMPILER:-"hipcc"}
 WHEEL_PY_API=${UCXX_WHEEL_PY_API:-}
 WHEEL_PY_API_GIVEN=${UCXX_WHEEL_PY_API+1}
 
+EXTRA_CMAKE_ARGS=()
+
 # process the flags and arguments
 TARGETS=()
 while [[ $# -gt 0 ]]; do
@@ -146,6 +149,7 @@ while [[ $# -gt 0 ]]; do
         --gpu-archs=*) GPU_ARCHS="$(processGpuArchs "${1#*=}")"; shift ;;
         --py-api) WHEEL_PY_API="$2"; WHEEL_PY_API_GIVEN=1; shift 2 ;;
         --py-api=*) WHEEL_PY_API="${1#*=}"; WHEEL_PY_API_GIVEN=1; shift ;;
+        --cmake-args=*) read -ra EXTRA_CMAKE_ARGS <<< "${1#*=}"; shift ;;
         -h|--help) printHelp; exit 0 ;;
         -*) echo "Unknown option: $1" >&2; exit 1 ;;
         *) TARGETS+=("$1"); shift ;;
@@ -322,7 +326,8 @@ if hasTarget libucxx; then
           -DUCXX_BENCHMARKS_ENABLE_CUDA=${BUILD_BENCHMARKS} \
           -DUCXX_BUILD_PYTHON_LIB=${BUILD_PY_API} \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=${BUILD_COMPILE_COMMANDS} \
-          -DUCXX_ENABLE_RMM=ON
+          -DUCXX_ENABLE_RMM=ON \
+          "${EXTRA_CMAKE_ARGS[@]}"
 
     VERBOSE_ARG=""
     if (( VERBOSE )); then
