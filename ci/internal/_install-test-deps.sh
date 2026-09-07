@@ -12,6 +12,7 @@ set -euo pipefail
 pip install --upgrade pip
 pip install cloudpickle pytest pytest-timeout pytest-asyncio "pytest-rerunfailures!=16.0.0"
 
+# Wheel/runtime deps staged from upstream ci_packages (hip-python, hipmm, cupy).
 # hipUCXX wheels are installed separately by test-wheels.sh.
 pip install --no-deps \
     --find-links "${BUILD_ARTIFACTS_DIR}" \

@@ -19,12 +19,11 @@ case "${HIPUCXX_BUILD_TYPE:-}" in
       amd-rocmds-logger
     )
 
-    # ucxx/_lib cimports cuda.bindings.cyruntime and rmm.pylibrmm.
-    need_hip_python_deps=0
-    [[ -n "${HIPUCXX_BUILD_UCXX-1}" ]] && need_hip_python_deps=1
-    [[ -n "${HIPUCXX_BUILD_DISTRIBUTED-1}" ]] && need_hip_python_deps=1
-
-    if [ "${need_hip_python_deps}" -eq 1 ]; then
+    # amd_hipucxx Cython (ucxx/_lib) cimports rmm.pylibrmm, whose .pxd chain
+    # pulls in cuda.bindings.cyruntime from the hip-python wheel set. libhipucxx
+    # and distributed-hipucxx are pure CMake/setuptools and do not need them.
+    ucxx_build=${HIPUCXX_BUILD_UCXX-1}
+    if [[ -n "${ucxx_build}" ]]; then
       specs+=(
         rocm-bindings-core
         rocm-bindings-hip

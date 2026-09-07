@@ -68,6 +68,8 @@ PATH="${python_bins[0]}:${base_path}" \
 BUILD_DIR="${BUILD_DIR}/libhipucxx" \
 HIPUCXX_BUILD_TYPE="${HIPUCXX_BUILD_TYPE}" \
 HIPUCXX_BUILD_UCXX= \
+HIPUCXX_BUILD_LIBHIPUCXX=1 \
+HIPUCXX_BUILD_DISTRIBUTED=1 \
     "${SCRIPT_DIR}/build-wheels.sh"
 
 for i in "${!python_versions[@]}"; do
@@ -82,6 +84,7 @@ for i in "${!python_versions[@]}"; do
     PATH="${python_bin}:${base_path}" \
     BUILD_DIR="${BUILD_DIR}/cp${python_version//./}" \
     HIPUCXX_BUILD_TYPE="${HIPUCXX_BUILD_TYPE}" \
+    HIPUCXX_BUILD_UCXX=1 \
     HIPUCXX_BUILD_LIBHIPUCXX= \
     HIPUCXX_BUILD_DISTRIBUTED= \
     USE_SABI="${sabi}" \
