@@ -59,6 +59,23 @@ if(NOT DEFINED UCXX_BUILD_PYTHON_LIB)
   endif()
 endif()
 
+# manylinux CI builds libucxx with a cmake-only venv; never use it for headers.
+set(Python3_FIND_VIRTUALENV NEVER)
+if(NOT Python3_EXECUTABLE)
+  if(DEFINED ENV{HIPUCXX_DEV_ABI})
+    set(_py_abi "$ENV{HIPUCXX_DEV_ABI}")
+  elseif(DEFINED ENV{PYTHON_ABI})
+    set(_py_abi "$ENV{PYTHON_ABI}")
+  endif()
+  if(DEFINED _py_abi)
+    set(_py_root "/opt/python/${_py_abi}")
+    if(EXISTS "${_py_root}/bin/python")
+      set(Python3_EXECUTABLE "${_py_root}/bin/python" CACHE FILEPATH "" FORCE)
+      set(Python3_ROOT_DIR "${_py_root}" CACHE PATH "" FORCE)
+    endif()
+  endif()
+endif()
+
 rapids_find_package(
   Python3 REQUIRED COMPONENTS Development.Module
   BUILD_EXPORT_SET ucxx-python-exports

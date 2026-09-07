@@ -57,9 +57,14 @@ python_abi="${HIPUCXX_DEV_ABI:-${PYTHON_ABI:-cp312-cp312}}"
 manylinux_python_root="/opt/python/${python_abi}"
 python_cmake_args=()
 if [[ -x "${manylinux_python_root}/bin/python" ]]; then
+    py_ver="$("${manylinux_python_root}/bin/python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+    py_inc="${manylinux_python_root}/include/python${py_ver}"
+    export CMAKE_INCLUDE_PATH="${py_inc}${CMAKE_INCLUDE_PATH:+:${CMAKE_INCLUDE_PATH}}"
     python_cmake_args=(
         "-DPython3_EXECUTABLE=${manylinux_python_root}/bin/python"
         "-DPython3_ROOT_DIR=${manylinux_python_root}"
+        "-DPython3_INCLUDE_DIR=${py_inc}"
+        "-DPython3_FIND_VIRTUALENV=NEVER"
     )
 fi
 
@@ -102,5 +107,15 @@ export_cpm_sources() {
 }
 
 wheel_cmake_args() {
-    printf '%s' "-DUCXX_ENABLE_RMM=ON;-DCPM_rmm_SOURCE=${SRC_DIR}/hipmm;-DCPM_libhipcxx_SOURCE=${SRC_DIR}/libhipcxx;-DCPM_rapids_logger_SOURCE=${SRC_DIR}/rocmds_logger"
+    local args=(
+        "-DUCXX_ENABLE_RMM=ON"
+        "-DCPM_rmm_SOURCE=${SRC_DIR}/hipmm"
+        "-DCPM_libhipcxx_SOURCE=${SRC_DIR}/libhipcxx"
+        "-DCPM_rapids_logger_SOURCE=${SRC_DIR}/rocmds_logger"
+    )
+    if ((${#python_cmake_args[@]} > 0)); then
+        args+=("${python_cmake_args[@]}")
+    fi
+    local IFS=';'
+    printf '%s' "${args[*]}"
 }
