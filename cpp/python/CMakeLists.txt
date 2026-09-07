@@ -33,10 +33,12 @@ project(
 
 option(BUILD_SHARED_LIBS "Build UCXX Python shared libraries" ON)
 
-# add third party dependencies using CPM
-rapids_cpm_init(OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/../../versions.json)
-# find rmm
-include(../cmake/thirdparty/get_rmm.cmake)
+# When built via add_subdirectory() from cpp/, the parent already configured CPM
+# and fetched rmm from CPM_rmm_SOURCE (/src/hipmm).
+if(NOT UCXX_BUILD_PYTHON_LIB)
+  rapids_cpm_init(OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/../../versions.json)
+  include(../cmake/thirdparty/get_rmm.cmake)
+endif()
 
 # if UCXX_BUILD_PYTHON_LIB is defined, then this is being built as part of the main libucxx project
 # itself and the following code path does not apply

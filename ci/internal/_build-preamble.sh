@@ -52,6 +52,17 @@ if [ -n "${AMDGPU_TARGETS:-}" ]; then
     export RAPIDS_CMAKE_HIP_ARCHITECTURES="${AMDGPU_TARGETS}"
 fi
 
+# manylinux dev headers live under /opt/python/<abi>, not inside hipucxx_dev.
+python_abi="${HIPUCXX_DEV_ABI:-${PYTHON_ABI:-cp312-cp312}}"
+manylinux_python_root="/opt/python/${python_abi}"
+python_cmake_args=()
+if [[ -x "${manylinux_python_root}/bin/python" ]]; then
+    python_cmake_args=(
+        "-DPython3_EXECUTABLE=${manylinux_python_root}/bin/python"
+        "-DPython3_ROOT_DIR=${manylinux_python_root}"
+    )
+fi
+
 cmake_args=(
     "-DCMAKE_VERBOSE_MAKEFILE=ON"
     "-DCPACK_OUTPUT_FILE_PREFIX=${BUILD_ARTIFACTS_DIR}"
@@ -63,6 +74,7 @@ cmake_args=(
     ${use_sccache:+"-D CMAKE_HIP_COMPILER_LAUNCHER=sccache"}
     ${use_sccache:+"-D CMAKE_CXX_COMPILER_LAUNCHER=sccache"}
     ${use_sccache:+"-D CMAKE_C_COMPILER_LAUNCHER=sccache"}
+    "${python_cmake_args[@]}"
 )
 
 if [ -d "/opt/rh/gcc-toolset-$(g++ -dumpversion)" ]; then
