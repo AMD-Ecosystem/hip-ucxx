@@ -10,12 +10,17 @@ set -xeu
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=_activate-env.sh
 . "${SCRIPT_DIR}/_activate-env.sh"
-# shellcheck source=_install-artifact-deps.sh
-. "${SCRIPT_DIR}/_install-artifact-deps.sh"
 
-install_cpp_packages_from_artifacts
+: "${PROJECT_ID:?PROJECT_ID must be set}"
+: "${BUILD_DIR:?BUILD_DIR must be set}"
+: "${INSTALL_DIR:?INSTALL_DIR must be set}"
 
-src_dir="${SRC_DIR}/${PROJECT_ID}"
+if ! activate_hipucxx_dev_env; then
+    # shellcheck source=/dev/null
+    . "${INSTALL_DIR}/venv/hipucxx_dev/bin/activate"
+fi
+
+src_dir="${SRC_DIR:-/src}/${PROJECT_ID}"
 build_dir="${BUILD_DIR}/${PROJECT_ID}"
 
 run_targets=()

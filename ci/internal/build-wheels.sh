@@ -3,45 +3,71 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
-# Build Python wheels and copy them to BUILD_ARTIFACTS_DIR.
+# Build hipUCXX Python wheels (amd-libhipucxx, amd-hipucxx, amd-distributed-hipucxx).
+#
+# Required environment variables:
+#   PROJECT_ID, SRC_DIR, BUILD_DIR, INSTALL_DIR, BUILD_ARTIFACTS_DIR
+#   AMDGPU_TARGETS, ROCM_PATH
 #
 # Optional environment variables:
-#   HIPUCXX_WHEEL_TARGETS -- build.hip.sh targets to build (default: py-all)
-#   HIPUCXX_WHEEL_PY_API  -- wheel.py-api for the ucxx wheel; a CPython tag such
-#                            as cp312 builds against the stable ABI, an empty
-#                            value clears any pin. Unset leaves it to the
-#                            pyproject files.
-#   HIPUCXX_WHEEL_PLATFORM_RETAG -- when 1, replace the generic linux_x86_64
-#                            platform tag with the manylinux tag auditwheel
-#                            reports. Only meaningful in a manylinux image.
-#   HIPUCXX_WHEEL_REQUIREMENTS -- pip requirements file with the build-time
-#                            dependencies whose versions the caller pins, the
-#                            hip-python and hipMM wheels ucxx/_lib cimports
-#                            among them. Images that carry those pins, rather
-#                            than pooling the wheels in BUILD_ARTIFACTS_DIR,
-#                            hand them over this way.
+#   HIPUCXX_BUILD_TYPE, CMAKE_VERSION
+#   CMAKE_INSTALL_PREFIX -- overrides INSTALL_DIR as the install prefix
+#   USE_SABI -- "no", or the CPython version to use as the stable-ABI (abi3)
+#               floor for amd-hipucxx, e.g. "3.12".
+#   HIPUCXX_BUILD_LIBHIPUCXX, HIPUCXX_BUILD_UCXX, HIPUCXX_BUILD_DISTRIBUTED --
+#               each wheel is built unless its switch is set empty.
 
-set -xeu
+set -euxo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=_wheel-helpers.sh
+source "${SCRIPT_DIR}/_wheel-helpers.sh"
+: "${PROJECT_ID:?PROJECT_ID must be set}"
+: "${SRC_DIR:?SRC_DIR must be set}"
+: "${BUILD_DIR:?BUILD_DIR must be set}"
+: "${INSTALL_DIR:?INSTALL_DIR must be set}"
+: "${BUILD_ARTIFACTS_DIR:?BUILD_ARTIFACTS_DIR must be set}"
+: "${AMDGPU_TARGETS:?AMDGPU_TARGETS must be set}"
+: "${ROCM_PATH:?ROCM_PATH must be set}"
+
+build_libhipucxx=${HIPUCXX_BUILD_LIBHIPUCXX-1}
+build_ucxx=${HIPUCXX_BUILD_UCXX-1}
+build_distributed=${HIPUCXX_BUILD_DISTRIBUTED-1}
+
+if [ "${USE_SABI:-no}" = "no" ]; then
+    ucxx_wheel_config=(--config-settings=skbuild.wheel.py-api=)
+else
+    ucxx_wheel_config=(--config-settings=skbuild.wheel.py-api=cp${USE_SABI//./})
+fi
+
+src_dir=${SRC_DIR}/${PROJECT_ID}
+wheels_build_dir=${BUILD_DIR}/_WHEELS_/
+build_dir="${wheels_build_dir}/${PROJECT_ID}"
+
+mkdir -p "${wheels_build_dir}"
+cp -va "${src_dir}/." "${build_dir}/"
+
+cd "${build_dir}"
 # shellcheck source=_build-preamble.sh
 . "${SCRIPT_DIR}/_build-preamble.sh"
-# shellcheck source=_install-artifact-deps.sh
-. "${SCRIPT_DIR}/_install-artifact-deps.sh"
-# shellcheck source=_wheel-helpers.sh
-. "${SCRIPT_DIR}/_wheel-helpers.sh"
 
-activate_hipucxx_python_environment
+export SKBUILD_CMAKE_ARGS="$(IFS=';'; echo "${cmake_args[*]}")"
+export WHEEL_BUILD_ROOT="${build_dir}"
 
 setup_build_environment
 # libhipcxx is a dependency to build the Python wheels
 _install_artifact_package libhipcxx
 
 export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:/opt/rocm-ds"
+wheels_build_env=$(mktemp -d)
+python3 -m venv "${wheels_build_env}"
+# shellcheck source=/dev/null
+. "${wheels_build_env}/bin/activate"
 
-pip install wheel build Cython scikit-build-core setuptools packaging
+    # shellcheck source=_install-build-deps.sh
+    . "${SCRIPT_DIR}/_install-build-deps.sh"
 
-install_python_wheels_from_artifacts
+    wheel_cmake="$(wheel_cmake_args)"
 
 # SRC_DIR, BUILD_DIR, and PROJECT_ID are provided by the CI environment
 # (not assigned in this repo); fail fast with a clear message if they are unset.
@@ -61,34 +87,21 @@ fi
 
 read -ra wheel_targets <<< "${HIPUCXX_WHEEL_TARGETS:-py-all}"
 build_args=("${wheel_targets[@]}" -n)
+    if [ -n "${build_libhipucxx}" ]; then
+        build_rapids_wheel "python/libucxx" "${wheel_cmake}"
+        verify_wheel_absent 'amd_libhipucxx*.whl' 'rapids_logger|librapids'
+    fi
 
-[[ "${HIPUCXX_DEBUG_BUILD:-false}" == "true" ]] && build_args+=(-g)
+    if [ -n "${build_ucxx}" ]; then
+        pip install "${BUILD_ARTIFACTS_DIR}"/amd_libhipucxx*.whl
+        build_rapids_wheel "python/ucxx" "${wheel_cmake}" "${ucxx_wheel_config[@]}"
+    fi
 
-if [ -n "${HIPUCXX_GPU_ARCHS:-}" ]; then
-    build_args+=(--gpu-archs "${HIPUCXX_GPU_ARCHS}")
-elif [ -n "${AMDGPU_TARGETS:-}" ]; then
-    build_args+=(--gpu-archs "${AMDGPU_TARGETS}")
-fi
+    if [ -n "${build_distributed}" ]; then
+        build_setuptools_wheel "python/distributed-ucxx"
+    fi
 
-# Set, not just non-empty: an empty value clears a pyproject pin.
-if [ -n "${HIPUCXX_WHEEL_PY_API+set}" ]; then
-    build_args+=(--py-api "${HIPUCXX_WHEEL_PY_API}")
-fi
+deactivate
+rm -rf "${wheels_build_env}"
 
-build_args+=(
-    --build-dir "${build_dir}"
-    --install-prefix "${install_prefix}"
-)
-
-cd "${src_dir}"
-./build.hip.sh "${build_args[@]}"
-
-wheel_dir="${build_dir}/python/dist"
-if [ -d "${wheel_dir}" ] && compgen -G "${wheel_dir}/*.whl" > /dev/null; then
-    mkdir -p "${BUILD_ARTIFACTS_DIR}"
-    cp -v "${wheel_dir}"/*.whl "${BUILD_ARTIFACTS_DIR}/"
-fi
-
-if [[ "${HIPUCXX_WHEEL_PLATFORM_RETAG:-0}" == "1" ]]; then
-    retag_linux_wheels
-fi
+rm -rf "${build_dir}"

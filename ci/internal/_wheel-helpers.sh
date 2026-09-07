@@ -1,29 +1,144 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
-# Wheel helpers for hipUCXX CI.
-# Meant to be sourced, not executed directly.
+# RAPIDS wheel build helpers. Meant to be sourced, not executed directly.
+#
+# Drop-in for ROCm-DS projects (hipmm, hipucxx, ...). Project scripts set
+# WHEEL_BUILD_ROOT to a copied checkout, then call build_rapids_wheel for each
+# python package directory.
 #
 # Required environment variables:
-#   BUILD_ARTIFACTS_DIR
+#   BUILD_ARTIFACTS_DIR -- wheel output, pip logs, auditwheel destination
+#   WHEEL_BUILD_ROOT    -- tree root containing package dirs (e.g. copied checkout)
+#
+# Optional environment variables:
+#   RAPIDS_PIP_WHEEL_ARGS    -- pip wheel flags (defaults below)
+#   AUDITWHEEL_EXCLUDE_ARGS  -- auditwheel --exclude flags (default: --exclude "*")
 
 set -euo pipefail
 
-# Retag rather than repair: the wheels are meant to keep loading the libraries
-# they were built against, so nothing is vendored in, only the platform tag is
-# corrected from the generic linux_x86_64 that setuptools writes.
-retag_linux_wheels() {
-    pip install auditwheel
+if ! declare -p RAPIDS_PIP_WHEEL_ARGS &>/dev/null; then
+    RAPIDS_PIP_WHEEL_ARGS=(
+        -vv
+        --no-deps
+        --no-build-isolation
+        --disable-pip-version-check
+        --config-settings=build.verbose=true
+        --config-settings=logging.level=DEBUG
+    )
+fi
+
+if ! declare -p AUDITWHEEL_EXCLUDE_ARGS &>/dev/null; then
+    AUDITWHEEL_EXCLUDE_ARGS=(--exclude "*")
+fi
+
+# verify_wheel_absent <wheel-glob> <path-pattern>
+#
+# Fail if any wheel matching <wheel-glob> under BUILD_ARTIFACTS_DIR lists a
+# path matching extended-regex <path-pattern> (grep -E).
+verify_wheel_absent() {
+    local glob=$1 pattern=$2
 
     shopt -s nullglob
-    for wheel in "${BUILD_ARTIFACTS_DIR}"/*-linux_x86_64.whl; do
-        platform_tag=$(python -m auditwheel show "${wheel}" \
-            | grep -o 'platform tag to ".\+"' | cut -d '"' -f 2)
-        if [ -z "${platform_tag}" ]; then
-            echo "ERROR: auditwheel reported no platform tag for ${wheel}" >&2
-            exit 1
-        fi
-        mv -v "${wheel}" "${wheel/linux_x86_64/${platform_tag}}"
-    done
+    local wheels=( "${BUILD_ARTIFACTS_DIR}"/${glob} )
     shopt -u nullglob
+    [ ${#wheels[@]} -eq 0 ] && return 0
+
+    local hits
+    hits=$(unzip -l "${wheels[@]}" | grep -E "${pattern}" || true)
+    if [ -n "${hits}" ]; then
+        echo "ERROR: ${glob} must not match /${pattern}/:" >&2
+        echo "${hits}" >&2
+        exit 1
+    fi
+}
+
+# dump_rapids_wheel_build_logs <pkg-relpath>
+#
+# Print CMake and other build logs from a failed scikit-build wheel build.
+dump_rapids_wheel_build_logs() {
+    local pkg_relpath=$1
+    local build_root="${WHEEL_BUILD_ROOT}/${pkg_relpath}/build"
+
+    echo "ERROR: wheel build failed for ${pkg_relpath}" >&2
+    if [ -d "${build_root}" ]; then
+        echo "==== wheel build tree (${build_root}) ====" >&2
+        find "${build_root}" -type f \( -name 'CMake*.log' -o -name '*.log' \) -print >&2
+        find "${build_root}" -type f \( -name 'CMake*.log' -o -name '*.log' \) -print0 \
+            | xargs -0 -r tail -n 200 >&2 || true
+    else
+        echo "No build tree at ${build_root}" >&2
+    fi
+}
+
+# build_rapids_wheel <pkg-relpath> [extra-cmake-args] [extra-pip-args...]
+#
+# Build one scikit-build wheel under WHEEL_BUILD_ROOT and repair it with
+# auditwheel into BUILD_ARTIFACTS_DIR.
+build_rapids_wheel() {
+    : "${BUILD_ARTIFACTS_DIR:?BUILD_ARTIFACTS_DIR must be set}"
+    : "${WHEEL_BUILD_ROOT:?WHEEL_BUILD_ROOT must be set}"
+
+    local pkg_relpath=$1
+    local dist_dir
+    dist_dir=$(mktemp -d)
+    local log_file="${BUILD_ARTIFACTS_DIR}/$(basename "${pkg_relpath}")-wheel.log"
+
+    cd "${WHEEL_BUILD_ROOT}/${pkg_relpath}"
+
+    if [ -n "${2:-}" ]; then
+        local saved_cmake_args="${SKBUILD_CMAKE_ARGS:-}"
+        export SKBUILD_CMAKE_ARGS="${SKBUILD_CMAKE_ARGS:+$SKBUILD_CMAKE_ARGS;}${2}"
+    fi
+
+    if ! python3 -m pip wheel . -w "${dist_dir}" \
+        "${RAPIDS_PIP_WHEEL_ARGS[@]}" "${@:3}" \
+        >"${log_file}" 2>&1; then
+        echo "==== pip wheel failed for ${pkg_relpath}; log: ${log_file} ====" >&2
+        cat "${log_file}" >&2
+        dump_rapids_wheel_build_logs "${pkg_relpath}"
+        exit 1
+    fi
+
+    if [ -n "${2:-}" ]; then
+        export SKBUILD_CMAKE_ARGS="${saved_cmake_args}"
+    fi
+
+    python3 -m auditwheel repair \
+        "${AUDITWHEEL_EXCLUDE_ARGS[@]}" \
+        -w "${BUILD_ARTIFACTS_DIR}" \
+        "${dist_dir}"/*
+
+    rm -rf "${dist_dir}"
+}
+
+# build_setuptools_wheel <pkg-relpath> [extra-pip-args...]
+#
+# Build a pure-Python wheel and repair it with auditwheel.
+build_setuptools_wheel() {
+    : "${BUILD_ARTIFACTS_DIR:?BUILD_ARTIFACTS_DIR must be set}"
+    : "${WHEEL_BUILD_ROOT:?WHEEL_BUILD_ROOT must be set}"
+
+    local pkg_relpath=$1
+    local dist_dir
+    dist_dir=$(mktemp -d)
+    local log_file="${BUILD_ARTIFACTS_DIR}/$(basename "${pkg_relpath}")-wheel.log"
+
+    cd "${WHEEL_BUILD_ROOT}/${pkg_relpath}"
+
+    if ! python3 -m pip wheel . -w "${dist_dir}" \
+        --no-deps --no-build-isolation --disable-pip-version-check \
+        "${@:2}" \
+        >"${log_file}" 2>&1; then
+        echo "==== pip wheel failed for ${pkg_relpath}; log: ${log_file} ====" >&2
+        cat "${log_file}" >&2
+        exit 1
+    fi
+
+    python3 -m auditwheel repair \
+        "${AUDITWHEEL_EXCLUDE_ARGS[@]}" \
+        -w "${BUILD_ARTIFACTS_DIR}" \
+        "${dist_dir}"/*
+
+    rm -rf "${dist_dir}"
 }

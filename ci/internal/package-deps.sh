@@ -8,12 +8,11 @@ set -xeu
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=_build-preamble.sh
 . "${SCRIPT_DIR}/_build-preamble.sh"
-# shellcheck source=_install-artifact-deps.sh
-. "${SCRIPT_DIR}/_install-artifact-deps.sh"
+# shellcheck source=_activate-env.sh
+. "${SCRIPT_DIR}/_activate-env.sh"
 
 activate_hipucxx_python_environment
-
-setup_build_environment
+export_cpm_sources
 
 pkg_fmt=$(package_format)
 parallel="${PARALLEL_LEVEL:-${MAX_JOBS:-$(nproc)}}"

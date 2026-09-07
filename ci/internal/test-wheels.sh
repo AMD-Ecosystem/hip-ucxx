@@ -5,32 +5,31 @@
 
 # Run Python tests/benchmarks selected via HIPUCXX_TARGETS (py_* tokens).
 #
+# Required environment variables:
+#   PROJECT_ID, BUILD_DIR, BUILD_ARTIFACTS_DIR, ARTIFACTS_DIR
+#
 # Optional environment variables:
-#   HIPUCXX_TEST_REQUIREMENTS -- pip requirements file with the third-party test
-#                            dependencies. Images that pin those versions
-#                            themselves, rather than pooling them as wheels in
-#                            BUILD_ARTIFACTS_DIR, hand them over this way.
+#   HIPUCXX_TEST_RESULTS_SUFFIX -- appended to the pytest output dir name
 
 set -xeu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=_build-preamble.sh
-. "${SCRIPT_DIR}/_build-preamble.sh"
-# shellcheck source=_install-artifact-deps.sh
-. "${SCRIPT_DIR}/_install-artifact-deps.sh"
+: "${PROJECT_ID:?PROJECT_ID must be set}"
+: "${BUILD_DIR:?BUILD_DIR must be set}"
+: "${BUILD_ARTIFACTS_DIR:?BUILD_ARTIFACTS_DIR must be set}"
+: "${ARTIFACTS_DIR:?ARTIFACTS_DIR must be set}"
+
+# shellcheck source=_activate-env.sh
+. "${SCRIPT_DIR}/_activate-env.sh"
 # shellcheck source=_install-test-deps.sh
 . "${SCRIPT_DIR}/_install-test-deps.sh"
 
-activate_hipucxx_python_environment
+wheels_test_env=$(mktemp -d)
+python3 -m venv "${wheels_test_env}"
+# shellcheck source=/dev/null
+. "${wheels_test_env}/bin/activate"
 
-setup_build_environment
-
-install_hipucxx_test_deps
-install_python_wheels_from_artifacts
-
-if [ -n "${HIPUCXX_TEST_REQUIREMENTS:-}" ]; then
-    pip install -r "${HIPUCXX_TEST_REQUIREMENTS}"
-fi
+pip install --upgrade pip
 
 specs=()
 shopt -s nullglob
@@ -50,7 +49,7 @@ mapfile -t specs < <(printf '%s\n' "${specs[@]}" | sort -u)
 
 pip install --find-links "${BUILD_ARTIFACTS_DIR}" "${specs[@]}"
 
-src_dir="${SRC_DIR}/${PROJECT_ID}"
+src_dir="${SRC_DIR:-/src}/${PROJECT_ID}"
 build_dir="${BUILD_DIR}/${PROJECT_ID}"
 
 run_targets=()
@@ -63,6 +62,8 @@ fi
 
 if [ ${#run_targets[@]} -eq 0 ]; then
     echo "No py_* targets in HIPUCXX_TARGETS; nothing to run."
+    deactivate
+    rm -rf "${wheels_test_env}"
     exit 0
 fi
 
@@ -70,3 +71,6 @@ ulimit -n 65536
 
 cd "${src_dir}"
 ./run.hip.sh --build-dir "${build_dir}" "${run_targets[@]}"
+
+deactivate
+rm -rf "${wheels_test_env}"

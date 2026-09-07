@@ -16,7 +16,7 @@
 # test-cpp.sh runs once, beside this script rather than inside it.
 #
 # Required environment variables:
-#   PROJECT_ID, SRC_DIR, BUILD_DIR, INSTALL_DIR, BUILD_ARTIFACTS_DIR
+#   PROJECT_ID, BUILD_DIR, BUILD_ARTIFACTS_DIR, ARTIFACTS_DIR
 #
 # Optional environment variables:
 #   HIPUCXX_TEST_PYTHONS -- whitespace-separated CPython versions to test
@@ -26,12 +26,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 : "${PROJECT_ID:?PROJECT_ID must be set}"
-: "${SRC_DIR:?SRC_DIR must be set}"
 : "${BUILD_DIR:?BUILD_DIR must be set}"
-: "${INSTALL_DIR:?INSTALL_DIR must be set}"
 : "${BUILD_ARTIFACTS_DIR:?BUILD_ARTIFACTS_DIR must be set}"
+: "${ARTIFACTS_DIR:?ARTIFACTS_DIR must be set}"
 
-export PROJECT_ID SRC_DIR BUILD_DIR INSTALL_DIR BUILD_ARTIFACTS_DIR
+export PROJECT_ID BUILD_DIR BUILD_ARTIFACTS_DIR ARTIFACTS_DIR
 
 test_pythons=${HIPUCXX_TEST_PYTHONS:-"3.11 3.12 3.13"}
 
