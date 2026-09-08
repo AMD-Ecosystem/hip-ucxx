@@ -36,6 +36,13 @@ else()
   set(ucxx-python_FOUND OFF)
 endif()
 
+include(../../cmake/rapids_config.cmake)
+include(rapids-cython-core)
+
+# Ahead of cpp/python, so the full component set (Interpreter, Development.Module and the
+# stable-ABI module when scikit-build-core asks for one) is resolved in one place.
+rapids_cython_init()
+
 if(NOT ucxx-python_FOUND)
   set(BUILD_TESTS OFF)
   set(BUILD_BENCHMARKS OFF)
@@ -45,28 +52,6 @@ if(NOT ucxx-python_FOUND)
   add_subdirectory(../../cpp/python ucxx-python ${_exclude_from_all})
 endif()
 
-include(../../cmake/rapids_config.cmake)
-include(rapids-cython-core)
-rapids_cython_init()
-
-# manylinux wheel builds may run with a cmake-only venv active; use the target interpreter.
-set(Python3_FIND_VIRTUALENV NEVER)
-if(NOT Python3_EXECUTABLE)
-  if(DEFINED ENV{HIPUCXX_DEV_ABI})
-    set(_py_abi "$ENV{HIPUCXX_DEV_ABI}")
-  elseif(DEFINED ENV{PYTHON_ABI})
-    set(_py_abi "$ENV{PYTHON_ABI}")
-  endif()
-  if(DEFINED _py_abi)
-    set(_py_root "/opt/python/${_py_abi}")
-    if(EXISTS "${_py_root}/bin/python")
-      set(Python3_EXECUTABLE "${_py_root}/bin/python" CACHE FILEPATH "" FORCE)
-      set(Python3_ROOT_DIR "${_py_root}" CACHE PATH "" FORCE)
-    endif()
-  endif()
-endif()
-
-find_package(Python3 REQUIRED COMPONENTS Development.Module)
 add_subdirectory(ucxx/examples)
 add_subdirectory(ucxx/_lib)
 if(UCXX_BUILD_TESTS)

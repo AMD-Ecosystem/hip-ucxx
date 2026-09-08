@@ -66,20 +66,25 @@ if [ -n "${AMDGPU_TARGETS:-}" ]; then
     export RAPIDS_CMAKE_HIP_ARCHITECTURES="${AMDGPU_TARGETS}"
 fi
 
-# manylinux dev headers live under /opt/python/<abi>, not inside hipucxx_dev.
-python_abi="${HIPUCXX_DEV_ABI:-${PYTHON_ABI:-cp312-cp312}}"
-manylinux_python_root="/opt/python/${python_abi}"
+# Only the plain-CMake dev build needs these: it configures cpp/python with the cmake-only
+# hipucxx_dev venv active, and manylinux dev headers live under /opt/python/<abi>, not inside
+# the venv. Wheel builds get their Python hints from scikit-build-core instead, one interpreter
+# per matrix pass, which is what keeps the cp311 pass off the cp312 headers.
 python_cmake_args=()
-if [[ -x "${manylinux_python_root}/bin/python" ]]; then
-    py_ver="$("${manylinux_python_root}/bin/python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-    py_inc="${manylinux_python_root}/include/python${py_ver}"
-    export CMAKE_INCLUDE_PATH="${py_inc}${CMAKE_INCLUDE_PATH:+:${CMAKE_INCLUDE_PATH}}"
-    python_cmake_args=(
-        "-DPython3_EXECUTABLE=${manylinux_python_root}/bin/python"
-        "-DPython3_ROOT_DIR=${manylinux_python_root}"
-        "-DPython3_INCLUDE_DIR=${py_inc}"
-        "-DPython3_FIND_VIRTUALENV=NEVER"
-    )
+if [ -z "${wheel_deps_from_pip:-}" ]; then
+    python_abi="${HIPUCXX_DEV_ABI:-${PYTHON_ABI:-cp312-cp312}}"
+    manylinux_python_root="/opt/python/${python_abi}"
+    if [[ -x "${manylinux_python_root}/bin/python" ]]; then
+        py_ver="$("${manylinux_python_root}/bin/python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+        py_inc="${manylinux_python_root}/include/python${py_ver}"
+        export CMAKE_INCLUDE_PATH="${py_inc}${CMAKE_INCLUDE_PATH:+:${CMAKE_INCLUDE_PATH}}"
+        python_cmake_args=(
+            "-DPython_EXECUTABLE=${manylinux_python_root}/bin/python"
+            "-DPython_ROOT_DIR=${manylinux_python_root}"
+            "-DPython_INCLUDE_DIR=${py_inc}"
+            "-DPython_FIND_VIRTUALENV=NEVER"
+        )
+    fi
 fi
 
 cmake_args=(
@@ -124,13 +129,13 @@ wheel_cmake_args() {
     # No CPM_*_SOURCE overrides: wheels resolve rmm/rapids_logger from the
     # installed dependency wheels, and UCXX_INSTALL_CPM_DEPS=OFF keeps whatever
     # CPM does fetch out of the wheel's install tree.
+    #
+    # No Python_* hints either: scikit-build-core owns interpreter resolution per
+    # matrix pass, so python_cmake_args is empty for wheels by construction.
     local args=(
         "-DUCXX_ENABLE_RMM=ON"
         "-DUCXX_INSTALL_CPM_DEPS=OFF"
     )
-    if ((${#python_cmake_args[@]} > 0)); then
-        args+=("${python_cmake_args[@]}")
-    fi
     local IFS=';'
     printf '%s' "${args[*]}"
 }

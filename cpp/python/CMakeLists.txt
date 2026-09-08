@@ -65,28 +65,34 @@ if(NOT DEFINED UCXX_BUILD_PYTHON_LIB)
   endif()
 endif()
 
-# manylinux CI builds libucxx with a cmake-only venv; never use it for headers.
-set(Python3_FIND_VIRTUALENV NEVER)
-if(NOT Python3_EXECUTABLE)
-  if(DEFINED ENV{HIPUCXX_DEV_ABI})
-    set(_py_abi "$ENV{HIPUCXX_DEV_ABI}")
-  elseif(DEFINED ENV{PYTHON_ABI})
-    set(_py_abi "$ENV{PYTHON_ABI}")
-  endif()
-  if(DEFINED _py_abi)
-    set(_py_root "/opt/python/${_py_abi}")
-    if(EXISTS "${_py_root}/bin/python")
-      set(Python3_EXECUTABLE "${_py_root}/bin/python" CACHE FILEPATH "" FORCE)
-      set(Python3_ROOT_DIR "${_py_root}" CACHE PATH "" FORCE)
+# Plain-CMake builds (build.hip.sh libucxx-py-api) run with the cmake-only hipucxx_dev venv
+# active, whose headers live under /opt/python/<abi> rather than in the venv. Under
+# scikit-build-core these hints come from skbuild instead, per target interpreter.
+if(NOT DEFINED SKBUILD)
+  set(Python_FIND_VIRTUALENV NEVER)
+  if(NOT Python_EXECUTABLE)
+    if(DEFINED ENV{HIPUCXX_DEV_ABI})
+      set(_py_abi "$ENV{HIPUCXX_DEV_ABI}")
+    elseif(DEFINED ENV{PYTHON_ABI})
+      set(_py_abi "$ENV{PYTHON_ABI}")
+    endif()
+    if(DEFINED _py_abi)
+      set(_py_root "/opt/python/${_py_abi}")
+      if(EXISTS "${_py_root}/bin/python")
+        set(Python_EXECUTABLE "${_py_root}/bin/python" CACHE FILEPATH "" FORCE)
+        set(Python_ROOT_DIR "${_py_root}" CACHE PATH "" FORCE)
+      endif()
     endif()
   endif()
 endif()
 
 rapids_find_package(
-  Python3 REQUIRED COMPONENTS Development.Module
+  Python REQUIRED COMPONENTS Development.Module
   BUILD_EXPORT_SET ucxx-python-exports
   INSTALL_EXPORT_SET ucxx-python-exports
 )
+
+message(STATUS "ucxx_python: Python ${Python_VERSION} (${Python_EXECUTABLE})")
 
 # ##################################################################################################
 # * compiler options ------------------------------------------------------------------------------
@@ -144,7 +150,7 @@ endif()
 # inside the Python interpreter, and setting it up this way ensures that we will work if the
 # interpreter links to Python statically instead of dynamically.
 target_link_libraries(
-  ucxx_python PUBLIC rmm::rmm ucx::ucp ucxx::ucxx "$<COMPILE_ONLY:Python3::Module>"
+  ucxx_python PUBLIC rmm::rmm ucx::ucp ucxx::ucxx "$<COMPILE_ONLY:Python::Module>"
 )
 
 # Add Conda library, and include paths if specified
