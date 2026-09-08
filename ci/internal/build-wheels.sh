@@ -89,7 +89,7 @@ read -ra wheel_targets <<< "${HIPUCXX_WHEEL_TARGETS:-py-all}"
 build_args=("${wheel_targets[@]}" -n)
     if [ -n "${build_libhipucxx}" ]; then
         build_rapids_wheel "python/libucxx" "${wheel_cmake}"
-        verify_wheel_absent 'amd_libhipucxx*.whl' 'rapids_logger|librapids'
+        verify_wheel_absent 'amd_libhipucxx*.whl' 'rapids_logger|librapids|rmm/|librmm|libhipmm'
     fi
 
     if [ -n "${build_ucxx}" ]; then

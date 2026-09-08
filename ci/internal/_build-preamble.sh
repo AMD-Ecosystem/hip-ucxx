@@ -19,7 +19,7 @@
 #
 # Optional environment variables:
 #   HIPUCXX_CONDA_ENV, CONDA_DIR, HIPUCXX_USE_VERSIONS_JSON,
-#   SCCACHE_ENABLE, AMDGPU_TARGETS, MAX_JOBS
+#   SCCACHE_ENABLE, AMDGPU_TARGETS, MAX_JOBS, HIPUCXX_BUILD_TYPE
 #   CMAKE_INSTALL_PREFIX -- overrides INSTALL_DIR as the install prefix
 
 set -euo pipefail
@@ -41,6 +41,20 @@ cmake --version && cpack --version
 [[ "${HIPUCXX_USE_VERSIONS_JSON:-"false"}" == "false" ]] && no_use_versions_json=1
 
 [[ "${SCCACHE_ENABLE:-false}" == "true" ]] && use_sccache=1
+
+# Wheel builds resolve rmm and rapids_logger from the ci_packages wheels
+# (amd-libhipmm, amd-rocmds-logger) via find_package; libhipcxx rides along in
+# amd-libhipmm. A CPM_<pkg>_SOURCE override switches rapids_cpm_find over to
+# CPMAddPackage, which skips find_package entirely and builds the dependency
+# from /src -- install rules and all -- straight into the wheel.
+case "${HIPUCXX_BUILD_TYPE:-}" in
+    wheels) wheel_deps_from_pip=1 ;;
+esac
+
+use_local_cpm_sources=
+if [ -n "${no_use_versions_json:-}" ] && [ -z "${wheel_deps_from_pip:-}" ]; then
+    use_local_cpm_sources=1
+fi
 
 if [[ "${CMAKE_INSTALL_PREFIX:-}" == "<conda-prefix>" ]]; then
     install_prefix="${CONDA_PREFIX}"
@@ -73,9 +87,9 @@ cmake_args=(
     "-DCPACK_OUTPUT_FILE_PREFIX=${BUILD_ARTIFACTS_DIR}"
     "-DCMAKE_INSTALL_PREFIX=${install_prefix}"
     "-DUCXX_ENABLE_RMM=ON"
-    ${no_use_versions_json:+"-DCPM_rmm_SOURCE=${SRC_DIR}/hipmm"}
-    ${no_use_versions_json:+"-DCPM_libhipcxx_SOURCE=${SRC_DIR}/libhipcxx"}
-    ${no_use_versions_json:+"-DCPM_rapids_logger_SOURCE=${SRC_DIR}/rocmds_logger"}
+    ${use_local_cpm_sources:+"-DCPM_rmm_SOURCE=${SRC_DIR}/hipmm"}
+    ${use_local_cpm_sources:+"-DCPM_libhipcxx_SOURCE=${SRC_DIR}/libhipcxx"}
+    ${use_local_cpm_sources:+"-DCPM_rapids_logger_SOURCE=${SRC_DIR}/rocmds_logger"}
     ${use_sccache:+"-D CMAKE_HIP_COMPILER_LAUNCHER=sccache"}
     ${use_sccache:+"-D CMAKE_CXX_COMPILER_LAUNCHER=sccache"}
     ${use_sccache:+"-D CMAKE_C_COMPILER_LAUNCHER=sccache"}
@@ -97,7 +111,7 @@ export CPM_USE_LOCAL_PACKAGES=OFF
 export CPM_DOWNLOAD_ALL=OFF
 
 export_cpm_sources() {
-    if [[ "${HIPUCXX_USE_VERSIONS_JSON:-"false"}" == "false" ]]; then
+    if [ -n "${use_local_cpm_sources:-}" ]; then
         export CPM_rmm_SOURCE="${SRC_DIR}/hipmm"
         export CPM_libhipcxx_SOURCE="${SRC_DIR}/libhipcxx"
         export CPM_rapids_logger_SOURCE="${SRC_DIR}/rocmds_logger"
@@ -107,11 +121,12 @@ export_cpm_sources() {
 }
 
 wheel_cmake_args() {
+    # No CPM_*_SOURCE overrides: wheels resolve rmm/rapids_logger from the
+    # installed dependency wheels, and UCXX_INSTALL_CPM_DEPS=OFF keeps whatever
+    # CPM does fetch out of the wheel's install tree.
     local args=(
         "-DUCXX_ENABLE_RMM=ON"
-        "-DCPM_rmm_SOURCE=${SRC_DIR}/hipmm"
-        "-DCPM_libhipcxx_SOURCE=${SRC_DIR}/libhipcxx"
-        "-DCPM_rapids_logger_SOURCE=${SRC_DIR}/rocmds_logger"
+        "-DUCXX_INSTALL_CPM_DEPS=OFF"
     )
     if ((${#python_cmake_args[@]} > 0)); then
         args+=("${python_cmake_args[@]}")

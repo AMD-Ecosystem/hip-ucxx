@@ -47,6 +47,11 @@ option(UCXX_BUILD_PYTHON_LIB "Build Python API library" OFF)
 option(UCXX_ENABLE_RMM "Enable support for CUDA multi-buffer transfer with RMM" OFF)
 # TODO: Flip UCXX_ENABLE_CCCL default to OFF once devcontainer builds pass -DUCXX_ENABLE_CCCL=ON
 option(UCXX_ENABLE_CCCL "Enable support for CUDA buffer with CCCL" ON)
+option(
+  UCXX_INSTALL_CPM_DEPS
+  "Whether to install/package third-party dependencies of ucxx together with ucxx. This has only an effect on packages that are downloaded by CPM, not those that CPM finds locally."
+  ON
+)
 option(DISABLE_DEPRECATION_WARNINGS "Disable warnings generated from deprecated declarations." OFF)
 
 message(VERBOSE "UCXX: Configure CMake to build tests: ${BUILD_TESTS}")

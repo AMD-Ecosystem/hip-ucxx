@@ -32,9 +32,15 @@ project(
 )
 
 option(BUILD_SHARED_LIBS "Build UCXX Python shared libraries" ON)
+# Declared here as well as in cpp/CMakeLists.txt because get_rmm.cmake is included below before cpp/
+# is added as a subdirectory, and it must not default to OFF on this path.
+option(
+  UCXX_INSTALL_CPM_DEPS
+  "Whether to install/package third-party dependencies of ucxx together with ucxx. This has only an effect on packages that are downloaded by CPM, not those that CPM finds locally."
+  ON
+)
 
-# When built via add_subdirectory() from cpp/, the parent already configured CPM
-# and fetched rmm from CPM_rmm_SOURCE (/src/hipmm).
+# When built via add_subdirectory() from cpp/, the parent already configured CPM and resolved rmm.
 if(NOT UCXX_BUILD_PYTHON_LIB)
   rapids_cpm_init(OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/../../versions.json)
   include(../cmake/thirdparty/get_rmm.cmake)

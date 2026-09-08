@@ -15,8 +15,12 @@ pip install --upgrade pip
 
 case "${HIPUCXX_BUILD_TYPE:-}" in
   wheels)
+    # Every wheel pass configures libucxx, whose CPM lookups for rmm and
+    # rapids_logger must resolve via find_package() against these wheels. Miss
+    # one and CPM builds it from source and installs it into our wheel.
     specs=(
       amd-rocmds-logger
+      amd-libhipmm
     )
 
     # amd_hipucxx Cython (ucxx/_lib) cimports rmm.pylibrmm, whose .pxd chain
@@ -28,7 +32,6 @@ case "${HIPUCXX_BUILD_TYPE:-}" in
         rocm-bindings-core
         rocm-bindings-hip
         hip-python-interop
-        amd-libhipmm
         amd-hipmm
       )
     fi
