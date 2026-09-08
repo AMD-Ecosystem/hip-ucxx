@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
@@ -6,7 +7,12 @@
 #
 # Provides:
 #   activate_hipucxx_dev_env()  - activates conda or the dev venv
+#   activate_hipucxx_python_environment()
+#                               - as above, but creates the dev venv with a
+#                                 pinned cmake if there is nothing to activate.
+#                                 Requires CMAKE_VERSION.
 #   hipucxx_has_target()        - checks HIPUCXX_TARGETS for a token
+#   package_format()            - DEB or RPM for the running distro
 
 set -euo pipefail
 
@@ -32,11 +38,14 @@ activate_hipucxx_dev_env() {
 
 activate_hipucxx_python_environment() {
     if ! activate_hipucxx_dev_env; then
+        python3 --version
         python3 -m venv --clear "${INSTALL_DIR}/venv/hipucxx_dev"
         # shellcheck source=/dev/null
         . "${INSTALL_DIR}/venv/hipucxx_dev/bin/activate"
         pip install --upgrade pip
+        pip install "cmake==${CMAKE_VERSION}"
     fi
+    cmake --version && cpack --version
 }
 
 hipucxx_has_target() {

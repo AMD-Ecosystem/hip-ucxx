@@ -17,9 +17,10 @@
 #     3.11, no SABI    -> cp311-cp311
 #     3.12, SABI 3.12  -> cp312-abi3
 #
-# Run this after build-dev.sh, never before: build-wheels.sh sources
-# _build-preamble.sh, which recreates ${INSTALL_DIR}/venv/hipucxx_dev with
-# --clear, and that venv is what build-dev.sh packs into the tests tarball.
+# Independent of the dev venv: build-wheels.sh activates nothing, so it can
+# neither clobber the ${INSTALL_DIR}/venv/hipucxx_dev that build-dev.sh packs
+# into the tests tarball, nor let that venv's interpreter shadow the per-pass
+# one set on PATH below.
 #
 # Required environment variables:
 #   PROJECT_ID, SRC_DIR, BUILD_DIR, INSTALL_DIR, BUILD_ARTIFACTS_DIR
@@ -67,7 +68,7 @@ echo "=============================================================="
 PATH="${python_bins[0]}:${base_path}" \
 BUILD_DIR="${BUILD_DIR}/libhipucxx" \
 HIPUCXX_BUILD_TYPE="${HIPUCXX_BUILD_TYPE}" \
-HIPUCXX_BUILD_UCXX= \
+HIPUCXX_BUILD_UCXX='' \
 HIPUCXX_BUILD_LIBHIPUCXX=1 \
 HIPUCXX_BUILD_DISTRIBUTED=1 \
     "${SCRIPT_DIR}/build-wheels.sh"
@@ -85,8 +86,8 @@ for i in "${!python_versions[@]}"; do
     BUILD_DIR="${BUILD_DIR}/cp${python_version//./}" \
     HIPUCXX_BUILD_TYPE="${HIPUCXX_BUILD_TYPE}" \
     HIPUCXX_BUILD_UCXX=1 \
-    HIPUCXX_BUILD_LIBHIPUCXX= \
-    HIPUCXX_BUILD_DISTRIBUTED= \
+    HIPUCXX_BUILD_LIBHIPUCXX='' \
+    HIPUCXX_BUILD_DISTRIBUTED='' \
     USE_SABI="${sabi}" \
         "${SCRIPT_DIR}/build-wheels.sh"
 done

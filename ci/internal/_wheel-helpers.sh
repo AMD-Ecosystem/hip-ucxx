@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
@@ -40,6 +41,8 @@ verify_wheel_absent() {
     local glob=$1 pattern=$2
 
     shopt -s nullglob
+    # ${glob} is unquoted on purpose: it is a wheel-name pattern to expand.
+    # shellcheck disable=SC2206
     local wheels=( "${BUILD_ARTIFACTS_DIR}"/${glob} )
     shopt -u nullglob
     [ ${#wheels[@]} -eq 0 ] && return 0
@@ -82,7 +85,8 @@ build_rapids_wheel() {
     local pkg_relpath=$1
     local dist_dir
     dist_dir=$(mktemp -d)
-    local log_file="${BUILD_ARTIFACTS_DIR}/$(basename "${pkg_relpath}")-wheel.log"
+    local log_file
+    log_file="${BUILD_ARTIFACTS_DIR}/$(basename "${pkg_relpath}")-wheel.log"
 
     cd "${WHEEL_BUILD_ROOT}/${pkg_relpath}"
 
@@ -122,7 +126,8 @@ build_setuptools_wheel() {
     local pkg_relpath=$1
     local dist_dir
     dist_dir=$(mktemp -d)
-    local log_file="${BUILD_ARTIFACTS_DIR}/$(basename "${pkg_relpath}")-wheel.log"
+    local log_file
+    log_file="${BUILD_ARTIFACTS_DIR}/$(basename "${pkg_relpath}")-wheel.log"
 
     cd "${WHEEL_BUILD_ROOT}/${pkg_relpath}"
 

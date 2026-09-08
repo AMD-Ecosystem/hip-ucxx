@@ -1,11 +1,19 @@
+# shellcheck shell=bash
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
-# Build preamble: sets up the build environment for hipUCXX.
-# Meant to be sourced, not executed directly.
+# Build preamble: computes the CMake arguments and environment shared by the
+# dev build and the wheel builds. Meant to be sourced, not executed directly.
+#
+# Deliberately activates nothing. A venv activation prepends its own bin/ to
+# PATH, which would override the per-pass interpreter that
+# build-wheels-manylinux.sh selects for each matrix entry. build-dev.sh, the
+# only consumer that wants the dev venv, activates it itself before sourcing
+# this file.
 #
 # Makes available locally:
-#   cmake_args     -- extra cmake args for libucxx builds
+#   cmake_args     -- extra cmake args for libucxx builds; consumers append
+#                     their own (see build-dev.sh for the dev-only Python hints)
 #   install_prefix -- the resolved install prefix
 #
 # Exports:
@@ -14,29 +22,15 @@
 #   CMAKE_PREFIX_PATH
 #
 # Required environment variables:
-#   INSTALL_DIR, SRC_DIR, BUILD_ARTIFACTS_DIR, ROCM_PATH
-#   CMAKE_VERSION
+#   INSTALL_DIR, SRC_DIR, ROCM_PATH
 #
 # Optional environment variables:
-#   HIPUCXX_CONDA_ENV, CONDA_DIR, HIPUCXX_USE_VERSIONS_JSON,
-#   SCCACHE_ENABLE, AMDGPU_TARGETS, MAX_JOBS, HIPUCXX_BUILD_TYPE
-#   CMAKE_INSTALL_PREFIX -- overrides INSTALL_DIR as the install prefix
+#   HIPUCXX_USE_VERSIONS_JSON, SCCACHE_ENABLE, AMDGPU_TARGETS, MAX_JOBS,
+#   HIPUCXX_BUILD_TYPE
+#   CMAKE_INSTALL_PREFIX -- overrides INSTALL_DIR as the install prefix;
+#                           "<conda-prefix>" resolves to CONDA_PREFIX
 
 set -euo pipefail
-
-_PREAMBLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=_activate-env.sh
-source "${_PREAMBLE_DIR}/_activate-env.sh"
-
-if ! activate_hipucxx_dev_env; then
-    python3 --version
-    python3 -m venv --clear "${INSTALL_DIR}/venv/hipucxx_dev"
-    # shellcheck source=/dev/null
-    . "${INSTALL_DIR}/venv/hipucxx_dev/bin/activate"
-    pip install --upgrade pip
-    pip install "cmake==${CMAKE_VERSION}"
-fi
-cmake --version && cpack --version
 
 [[ "${HIPUCXX_USE_VERSIONS_JSON:-"false"}" == "false" ]] && no_use_versions_json=1
 
@@ -57,7 +51,7 @@ if [ -n "${no_use_versions_json:-}" ] && [ -z "${wheel_deps_from_pip:-}" ]; then
 fi
 
 if [[ "${CMAKE_INSTALL_PREFIX:-}" == "<conda-prefix>" ]]; then
-    install_prefix="${CONDA_PREFIX}"
+    install_prefix="${CONDA_PREFIX:?CMAKE_INSTALL_PREFIX=<conda-prefix> needs an activated conda env}"
 else
     install_prefix="${CMAKE_INSTALL_PREFIX:-${INSTALL_DIR}}"
 fi
@@ -66,76 +60,31 @@ if [ -n "${AMDGPU_TARGETS:-}" ]; then
     export RAPIDS_CMAKE_HIP_ARCHITECTURES="${AMDGPU_TARGETS}"
 fi
 
-# Only the plain-CMake dev build needs these: it configures cpp/python with the cmake-only
-# hipucxx_dev venv active, and manylinux dev headers live under /opt/python/<abi>, not inside
-# the venv. Wheel builds get their Python hints from scikit-build-core instead, one interpreter
-# per matrix pass, which is what keeps the cp311 pass off the cp312 headers.
-python_cmake_args=()
-if [ -z "${wheel_deps_from_pip:-}" ]; then
-    python_abi="${HIPUCXX_DEV_ABI:-${PYTHON_ABI:-cp312-cp312}}"
-    manylinux_python_root="/opt/python/${python_abi}"
-    if [[ -x "${manylinux_python_root}/bin/python" ]]; then
-        py_ver="$("${manylinux_python_root}/bin/python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-        py_inc="${manylinux_python_root}/include/python${py_ver}"
-        export CMAKE_INCLUDE_PATH="${py_inc}${CMAKE_INCLUDE_PATH:+:${CMAKE_INCLUDE_PATH}}"
-        python_cmake_args=(
-            "-DPython_EXECUTABLE=${manylinux_python_root}/bin/python"
-            "-DPython_ROOT_DIR=${manylinux_python_root}"
-            "-DPython_INCLUDE_DIR=${py_inc}"
-            "-DPython_FIND_VIRTUALENV=NEVER"
-        )
-    fi
-fi
-
+# Consumed by the scripts that source this file, not here.
+# shellcheck disable=SC2034
 cmake_args=(
     "-DCMAKE_VERBOSE_MAKEFILE=ON"
-    "-DCPACK_OUTPUT_FILE_PREFIX=${BUILD_ARTIFACTS_DIR}"
     "-DCMAKE_INSTALL_PREFIX=${install_prefix}"
     "-DUCXX_ENABLE_RMM=ON"
+    # CPM honours CPM_<pkg>_SOURCE only as a CMake variable, never from the
+    # environment, so these have to stay -D args on the configure line.
     ${use_local_cpm_sources:+"-DCPM_rmm_SOURCE=${SRC_DIR}/hipmm"}
     ${use_local_cpm_sources:+"-DCPM_libhipcxx_SOURCE=${SRC_DIR}/libhipcxx"}
     ${use_local_cpm_sources:+"-DCPM_rapids_logger_SOURCE=${SRC_DIR}/rocmds_logger"}
     ${use_sccache:+"-D CMAKE_HIP_COMPILER_LAUNCHER=sccache"}
     ${use_sccache:+"-D CMAKE_CXX_COMPILER_LAUNCHER=sccache"}
     ${use_sccache:+"-D CMAKE_C_COMPILER_LAUNCHER=sccache"}
-    "${python_cmake_args[@]}"
 )
 
 if [ -d "/opt/rh/gcc-toolset-$(g++ -dumpversion)" ]; then
     toolchain="/opt/rh/gcc-toolset-$(g++ -dumpversion)/root/usr"
     export CCC_OVERRIDE_OPTIONS="+--gcc-toolchain=${toolchain}"
-    export CC=${toolchain}/bin/cc
 fi
 
 export PARALLEL_LEVEL=${MAX_JOBS:-1}
 export CC=hipcc
 export CXX=hipcc
 export ROCM_HOME="${ROCM_PATH}"
-export CMAKE_PREFIX_PATH+="${install_prefix}:${ROCM_PATH}"
+export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:+${CMAKE_PREFIX_PATH}:}${install_prefix}:${ROCM_PATH}"
 export CPM_USE_LOCAL_PACKAGES=OFF
 export CPM_DOWNLOAD_ALL=OFF
-
-export_cpm_sources() {
-    if [ -n "${use_local_cpm_sources:-}" ]; then
-        export CPM_rmm_SOURCE="${SRC_DIR}/hipmm"
-        export CPM_libhipcxx_SOURCE="${SRC_DIR}/libhipcxx"
-        export CPM_rapids_logger_SOURCE="${SRC_DIR}/rocmds_logger"
-    fi
-    export CPM_USE_LOCAL_PACKAGES=OFF
-    export CPM_DOWNLOAD_ALL=OFF
-}
-
-wheel_cmake_args() {
-    # No CPM_*_SOURCE overrides: wheels resolve rmm/rapids_logger from the
-    # installed dependency wheels, and UCXX_INSTALL_CPM_DEPS=OFF keeps whatever
-    # CPM does fetch out of the wheel's install tree.
-    #
-    # No Python_* hints either: scikit-build-core owns interpreter resolution per
-    # matrix pass, so python_cmake_args is empty for wheels by construction.
-    local args=(
-        "-DUCXX_ENABLE_RMM=ON"
-        "-DUCXX_INSTALL_CPM_DEPS=OFF"
-    )
-    local IFS=';'
-    printf '%s' "${args[*]}"
-}

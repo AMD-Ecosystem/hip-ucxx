@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck source-path=SCRIPTDIR
 
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
@@ -35,9 +36,9 @@ build_ucxx=${HIPUCXX_BUILD_UCXX-1}
 build_distributed=${HIPUCXX_BUILD_DISTRIBUTED-1}
 
 if [ "${USE_SABI:-no}" = "no" ]; then
-    ucxx_wheel_config=(--config-settings=skbuild.wheel.py-api=)
+    ucxx_wheel_config=("--config-settings=skbuild.wheel.py-api=")
 else
-    ucxx_wheel_config=(--config-settings=skbuild.wheel.py-api=cp${USE_SABI//./})
+    ucxx_wheel_config=("--config-settings=skbuild.wheel.py-api=cp${USE_SABI//./}")
 fi
 
 src_dir=${SRC_DIR}/${PROJECT_ID}
@@ -51,7 +52,11 @@ cd "${build_dir}"
 # shellcheck source=_build-preamble.sh
 . "${SCRIPT_DIR}/_build-preamble.sh"
 
-export SKBUILD_CMAKE_ARGS="$(IFS=';'; echo "${cmake_args[*]}")"
+# cmake_args comes from _build-preamble.sh, which shellcheck cannot read when
+# this script is checked on its own.
+# shellcheck disable=SC2154
+SKBUILD_CMAKE_ARGS="$(IFS=';'; echo "${cmake_args[*]}")"
+export SKBUILD_CMAKE_ARGS
 export WHEEL_BUILD_ROOT="${build_dir}"
 
 setup_build_environment
@@ -67,7 +72,17 @@ python3 -m venv "${wheels_build_env}"
     # shellcheck source=_install-build-deps.sh
     . "${SCRIPT_DIR}/_install-build-deps.sh"
 
-    wheel_cmake="$(wheel_cmake_args)"
+    # No CPM_*_SOURCE overrides: wheels resolve rmm/rapids_logger from the
+    # installed dependency wheels, and UCXX_INSTALL_CPM_DEPS=OFF keeps whatever
+    # CPM does fetch out of the wheel's install tree.
+    #
+    # No Python_* hints either: scikit-build-core owns interpreter resolution
+    # per matrix pass.
+    wheel_cmake_args=(
+        "-DUCXX_ENABLE_RMM=ON"
+        "-DUCXX_INSTALL_CPM_DEPS=OFF"
+    )
+    wheel_cmake="$(IFS=';'; echo "${wheel_cmake_args[*]}")"
 
 # SRC_DIR, BUILD_DIR, and PROJECT_ID are provided by the CI environment
 # (not assigned in this repo); fail fast with a clear message if they are unset.
