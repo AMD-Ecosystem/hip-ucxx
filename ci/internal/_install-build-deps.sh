@@ -9,6 +9,13 @@
 #   BUILD_ARTIFACTS_DIR -- directory containing pre-built dependency wheels
 #   HIPUCXX_BUILD_TYPE  -- controls which dependencies to install
 #   CMAKE_VERSION       -- the version of the cmake package to install
+#
+# Optional environment variables:
+#   ROCMDS_LOGGER_VERSION -- pins amd-rocmds-logger
+#   HIPMM_VERSION         -- pins amd-libhipmm and amd-hipmm
+#                            CI sets both from the builder-tester
+#                            _envs/rocmds/<branch> env file, and a bare checkout
+#                            without them installs unpinned
 
 set -euo pipefail
 
@@ -20,8 +27,8 @@ case "${HIPUCXX_BUILD_TYPE:-}" in
     # rapids_logger must resolve via find_package() against these wheels. Miss
     # one and CPM builds it from source and installs it into our wheel.
     specs=(
-      amd-rocmds-logger
-      amd-libhipmm
+      "amd-rocmds-logger${ROCMDS_LOGGER_VERSION:+==${ROCMDS_LOGGER_VERSION}}"
+      "amd-libhipmm${HIPMM_VERSION:+==${HIPMM_VERSION}}"
     )
 
     # amd_hipucxx Cython (ucxx/_lib) cimports rmm.pylibrmm, whose .pxd chain
@@ -30,10 +37,12 @@ case "${HIPUCXX_BUILD_TYPE:-}" in
     ucxx_build=${HIPUCXX_BUILD_UCXX-1}
     if [[ -n "${ucxx_build}" ]]; then
       specs+=(
+        # rocm-bindings-* and hip-python-interop stay unpinned: their version
+        # leads with the base image's ROCm version, which no env key names.
         rocm-bindings-core
         rocm-bindings-hip
         hip-python-interop
-        amd-hipmm
+        "amd-hipmm${HIPMM_VERSION:+==${HIPMM_VERSION}}"
       )
     fi
 
