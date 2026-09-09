@@ -66,8 +66,12 @@ dump_rapids_wheel_build_logs() {
     echo "ERROR: wheel build failed for ${pkg_relpath}" >&2
     if [ -d "${build_root}" ]; then
         echo "==== wheel build tree (${build_root}) ====" >&2
-        find "${build_root}" -type f \( -name 'CMake*.log' -o -name '*.log' \) -print >&2
-        find "${build_root}" -type f \( -name 'CMake*.log' -o -name '*.log' \) -print0 \
+        # CMake >= 3.26 records its configure-time checks in CMakeConfigureLog.yaml
+        # instead of the CMakeError.log/CMakeOutput.log pair a *.log glob catches.
+        find "${build_root}" -type f \
+            \( -name '*.log' -o -name 'CMakeConfigureLog.yaml' \) -print >&2
+        find "${build_root}" -type f \
+            \( -name '*.log' -o -name 'CMakeConfigureLog.yaml' \) -print0 \
             | xargs -0 -r tail -n 200 >&2 || true
     else
         echo "No build tree at ${build_root}" >&2
