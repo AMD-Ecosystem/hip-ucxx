@@ -105,30 +105,6 @@ rapids_find_package(
 rapids_cpm_init(OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/../versions.json)
 # find rmm
 if(UCXX_ENABLE_RMM)
-  message(DEPRECATION "UCXX_ENABLE_RMM is deprecated and will be removed in a future release. "
-                      "Use UCXX_ENABLE_CCCL instead."
-  )
-  # TEMPORARY DIAGNOSTIC (remove once the wheel rmm lookup is fixed). rapids_cpm_rmm() resolves rmm
-  # via CPMFindPackage, whose find_package() call is QUIET, so a failing transitive
-  # find_dependency() in the amd-libhipmm wheel's rmm-dependencies.cmake is silent and CPM falls
-  # back to cloning hipMM. Repeat the lookup non-QUIET first so the reason is reported. Gated on
-  # SKBUILD to keep the dev/RPM build, which resolves rmm via CPM_rmm_SOURCE, untouched.
-  if(SKBUILD)
-    find_package(rmm 5.0.0)
-    message(STATUS "DIAG rmm_FOUND: '${rmm_FOUND}'")
-    message(STATUS "DIAG rmm_NOT_FOUND_MESSAGE: '${rmm_NOT_FOUND_MESSAGE}'")
-    message(STATUS "DIAG rmm_CONSIDERED_CONFIGS: '${rmm_CONSIDERED_CONFIGS}'")
-    message(STATUS "DIAG rmm_CONSIDERED_VERSIONS: '${rmm_CONSIDERED_VERSIONS}'")
-    message(STATUS "DIAG CMAKE_PREFIX_PATH: '${CMAKE_PREFIX_PATH}'")
-    message(STATUS "DIAG env CMAKE_PREFIX_PATH: '$ENV{CMAKE_PREFIX_PATH}'")
-    foreach(_diag_dep HIP rapids_logger hipCCL libhipcxx rocthrust rocprim hipcub)
-      find_package(${_diag_dep} QUIET)
-      message(STATUS "DIAG dep ${_diag_dep}: FOUND='${${_diag_dep}_FOUND}' "
-                     "DIR='${${_diag_dep}_DIR}'"
-      )
-    endforeach()
-  endif()
-
   include(cmake/thirdparty/get_rmm.cmake)
 endif()
 # find cccl
