@@ -108,8 +108,13 @@ build_args=("${wheel_targets[@]}" -n)
     fi
 
     if [ -n "${build_ucxx}" ]; then
+        # note: load-bearing -- FIND_UCXX_CPP=ON makes cpp/python take the rapids_find_package(ucxx)
+        # branch, which resolves against this wheel instead of recompiling the C++ library here.
         pip install "${BUILD_ARTIFACTS_DIR}"/amd_libhipucxx*.whl
-        build_rapids_wheel "python/ucxx" "${wheel_cmake}" "${ucxx_wheel_config[@]}"
+        build_rapids_wheel "python/ucxx" "${wheel_cmake};-DFIND_UCXX_CPP=ON" "${ucxx_wheel_config[@]}"
+        # The Cython module is ucxx/_lib/libucxx.cpython-*.so, so this only catches a bundled
+        # C++ libucxx.so[.N] -- i.e. FIND_UCXX_CPP silently falling back to the source build.
+        verify_wheel_absent 'amd_hipucxx*.whl' 'libucxx\.so'
     fi
 
     if [ -n "${build_distributed}" ]; then
