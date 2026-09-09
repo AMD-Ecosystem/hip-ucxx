@@ -47,13 +47,17 @@ verify_wheel_absent() {
     shopt -u nullglob
     [ ${#wheels[@]} -eq 0 ] && return 0
 
-    local hits
-    hits=$(unzip -l "${wheels[@]}" | grep -E "${pattern}" || true)
-    if [ -n "${hits}" ]; then
-        echo "ERROR: ${glob} must not match /${pattern}/:" >&2
-        echo "${hits}" >&2
-        exit 1
-    fi
+    # One archive per unzip call: a second path argument is read as a member
+    # filter, not as another archive, which would pass every wheel but the first.
+    local wheel hits
+    for wheel in "${wheels[@]}"; do
+        hits=$(unzip -l "${wheel}" | grep -E "${pattern}" || true)
+        if [ -n "${hits}" ]; then
+            echo "ERROR: $(basename "${wheel}") must not match /${pattern}/:" >&2
+            echo "${hits}" >&2
+            exit 1
+        fi
+    done
 }
 
 # dump_rapids_wheel_build_logs <pkg-relpath>
