@@ -6,11 +6,12 @@
 # Run the hipUCXX Python suite once per supported interpreter, against the wheel
 # pool build-wheels-manylinux.sh produced.
 #
-# The pool holds two amd_hipucxx tag families, cp311-cp311 and cp312-abi3, and
-# each interpreter is served by exactly one of them. Nothing here decides which:
-# test-wheels.sh asks pip for the distributions by name and pip matches the
-# tags, so 3.13 lands on the abi3 wheel for free. That is the point of the abi3
-# entry, and the reason 3.13 is tested here without being built for.
+# The pool holds one amd_hipucxx wheel per interpreter -- cp311-cp311,
+# cp312-cp312, cp313-cp313 -- because ucxx/_lib does not compile against the
+# limited API, so no abi3 wheel covers the interpreters above the one it was
+# built with. Nothing here decides which wheel is used: test-wheels.sh asks pip
+# for the distributions by name and pip matches the tags. Every version listed
+# below therefore needs its own entry in build-wheels-manylinux.sh.
 #
 # The C++ suite is not driven from here. It is interpreter-independent, so
 # test-cpp.sh runs once, beside this script rather than inside it.

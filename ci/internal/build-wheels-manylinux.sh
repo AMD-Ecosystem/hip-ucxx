@@ -14,8 +14,17 @@
 #   amd_hipucxx             ... one per entry, because ucxx/_lib and
 #                               ucxx/examples are Cython:
 #
-#     3.11, no SABI    -> cp311-cp311
-#     3.12, SABI 3.12  -> cp312-abi3
+#     3.11 -> cp311-cp311
+#     3.12 -> cp312-cp312
+#     3.13 -> cp313-cp313
+#
+# One entry per interpreter rather than a single stable-ABI wheel: ucxx/_lib
+# cannot be compiled with Py_LIMITED_API, because arr.pyx cimports
+# PyMemoryView_GET_BUFFER and PyTuple_SET_ITEM. Both live under cpython/ in
+# every CPython from 3.12 to 3.15, that is, outside the limited API, so no SABI
+# floor makes that pass -- arr.pyx has to move to PyObject_GetBuffer and
+# PyTuple_SetItem first. Every interpreter the tests cover therefore needs its
+# own entry here; nothing is inherited from a lower one.
 #
 # Independent of the dev venv: build-wheels.sh activates nothing, so it can
 # neither clobber the ${INSTALL_DIR}/venv/hipucxx_dev that build-dev.sh packs
@@ -42,13 +51,16 @@ export PROJECT_ID SRC_DIR INSTALL_DIR BUILD_ARTIFACTS_DIR
 
 mkdir -p "${BUILD_ARTIFACTS_DIR}"
 
-python_versions=(3.11 3.12)
-sabi_floors=(no 3.12)
-expected_tags=(cp311-cp311 cp312-abi3)
+python_versions=(3.11 3.12 3.13)
+# Kept as a per-entry array, so flipping one interpreter back to the stable ABI
+# once arr.pyx allows it is a one-token change here.
+sabi_floors=(no no no)
+expected_tags=(cp311-cp311 cp312-cp312 cp313-cp313)
 
 python_bins=(
     /opt/python/cp311-cp311/bin
     /opt/python/cp312-cp312/bin
+    /opt/python/cp313-cp313/bin
 )
 
 for python_bin in "${python_bins[@]}"; do
@@ -126,16 +138,13 @@ if [ ${#missing[@]} -gt 0 ]; then
     exit 1
 fi
 
-unexpected=()
-for bad_tag in cp312-cp312 cp313-cp313; do
-    found=("${BUILD_ARTIFACTS_DIR}"/amd_hipucxx-*-"${bad_tag}"-*.whl)
-    if [ ${#found[@]} -gt 0 ]; then
-        unexpected+=("${bad_tag} (${#found[@]} wheel(s))")
-    fi
-done
-if [ ${#unexpected[@]} -gt 0 ]; then
-    echo "ERROR: version-specific wheels outside the matrix:" >&2
-    printf '  - %s\n' "${unexpected[@]}" >&2
+# An abi3 wheel here means USE_SABI came back for a pass while arr.pyx still
+# cimports the two macros the limited API excludes. That build cannot have
+# compiled ucxx/_lib, so whatever produced the wheel is not what the tag claims.
+abi3_wheels=("${BUILD_ARTIFACTS_DIR}"/amd_hipucxx-*-abi3-*.whl)
+if [ ${#abi3_wheels[@]} -gt 0 ]; then
+    echo "ERROR: stable-ABI wheels in a matrix built without SABI:" >&2
+    printf '  - %s\n' "${abi3_wheels[@]##*/}" >&2
     ls -1 "${BUILD_ARTIFACTS_DIR}"/amd_hipucxx*.whl >&2 || true
     exit 1
 fi

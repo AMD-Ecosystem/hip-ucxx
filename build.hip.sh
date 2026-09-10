@@ -65,8 +65,11 @@ Build options:
     --py-api            - wheel.py-api for the 'ucxx' wheel, the only one with
                           compiled extensions. A CPython tag such as 'cp312'
                           builds against the stable ABI and tags the wheel
-                          cp312-abi3, which also installs on later CPythons; an
-                          empty value clears any pin, for a tag specific to the
+                          cp312-abi3, which also installs on later CPythons, but
+                          fails to compile ucxx/_lib/arr.pyx today: it cimports
+                          PyMemoryView_GET_BUFFER and PyTuple_SET_ITEM, which
+                          the limited API does not declare. An empty value, the
+                          default, clears any pin, for a tag specific to the
                           building interpreter
     -j                  - specify number of jobs for parallel builds
     -v                  - enable verbose build output

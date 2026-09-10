@@ -15,7 +15,10 @@
 #   UCXX_VERSION -- pins the wheels this build installs from BUILD_ARTIFACTS_DIR
 #   CMAKE_INSTALL_PREFIX -- overrides INSTALL_DIR as the install prefix
 #   USE_SABI -- "no", or the CPython version to use as the stable-ABI (abi3)
-#               floor for amd-hipucxx, e.g. "3.12".
+#               floor for amd-hipucxx, e.g. "3.12". Only "no" builds today:
+#               ucxx/_lib/arr.pyx cimports PyMemoryView_GET_BUFFER and
+#               PyTuple_SET_ITEM, neither of which the limited API declares in
+#               any CPython version, so a floor fails the compile outright.
 #   HIPUCXX_BUILD_LIBHIPUCXX, HIPUCXX_BUILD_UCXX, HIPUCXX_BUILD_DISTRIBUTED --
 #               each wheel is built unless its switch is set empty.
 
