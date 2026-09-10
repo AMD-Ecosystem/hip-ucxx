@@ -9,9 +9,13 @@
 # Required environment variables:
 #   BUILD_ARTIFACTS_DIR
 #   ROCM_PATH (or ROCM_HOME)
+#   ROCM_UCX_VERSION   -- OpenUCX release to build. The only name for it, so
+#                         that the version has one spelling from the CI env
+#                         file (_envs/rocmds/<branch> in aisw-ci-builder-tester)
+#                         down to here. Not to be confused with UCXX_VERSION,
+#                         which is hipUCXX's own version.
 #
 # Optional environment variables:
-#   HIPUCXX_UCX_VERSION -- UCX release to build; defaults to UCX_VERSION
 #   MAX_JOBS
 
 set -euxo pipefail
@@ -21,8 +25,7 @@ set -euxo pipefail
 rocm_home="${ROCM_HOME:-${ROCM_PATH:-}}"
 : "${rocm_home:?ROCM_PATH or ROCM_HOME must be set}"
 
-ucx_version="${HIPUCXX_UCX_VERSION:-${UCX_VERSION:-}}"
-: "${ucx_version:?HIPUCXX_UCX_VERSION or UCX_VERSION must be set}"
+ucx_version="${ROCM_UCX_VERSION:?ROCM_UCX_VERSION must be set}"
 
 mkdir -p "${BUILD_ARTIFACTS_DIR}"
 
