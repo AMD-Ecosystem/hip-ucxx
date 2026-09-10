@@ -223,6 +223,10 @@ build_rapids_wheel() {
 # build_setuptools_wheel <pkg-relpath> [extra-pip-args...]
 #
 # Build a pure-Python wheel and repair it with auditwheel.
+#
+# --allow-pure-python-wheel (auditwheel >= 6.6.0) is what makes the repair step
+# a copy rather than an error: a py3-none-any wheel has no ELF file to analyse,
+# so auditwheel otherwise exits 1 on it.
 build_setuptools_wheel() {
     : "${BUILD_ARTIFACTS_DIR:?BUILD_ARTIFACTS_DIR must be set}"
     : "${WHEEL_BUILD_ROOT:?WHEEL_BUILD_ROOT must be set}"
@@ -247,6 +251,7 @@ build_setuptools_wheel() {
     fi
 
     python3 -m auditwheel repair \
+        --allow-pure-python-wheel \
         "${AUDITWHEEL_EXCLUDE_ARGS[@]}" \
         -w "${BUILD_ARTIFACTS_DIR}" \
         "${dist_dir}"/*
