@@ -12,6 +12,7 @@
 #
 # Optional environment variables:
 #   HIPUCXX_BUILD_TYPE, CMAKE_VERSION
+#   UCXX_VERSION -- pins the wheels this build installs from BUILD_ARTIFACTS_DIR
 #   CMAKE_INSTALL_PREFIX -- overrides INSTALL_DIR as the install prefix
 #   USE_SABI -- "no", or the CPython version to use as the stable-ABI (abi3)
 #               floor for amd-hipucxx, e.g. "3.12".
@@ -110,7 +111,8 @@ build_args=("${wheel_targets[@]}" -n)
     if [ -n "${build_ucxx}" ]; then
         # note: load-bearing -- FIND_UCXX_CPP=ON makes cpp/python take the rapids_find_package(ucxx)
         # branch, which resolves against this wheel instead of recompiling the C++ library here.
-        pip install "${BUILD_ARTIFACTS_DIR}"/amd_libhipucxx*.whl
+        install_built_wheel --no-deps --no-index -- \
+            "amd_libhipucxx${UCXX_VERSION:+==${UCXX_VERSION}}"
         build_rapids_wheel "python/ucxx" "${wheel_cmake};-DFIND_UCXX_CPP=ON" "${ucxx_wheel_config[@]}"
         # The Cython module is ucxx/_lib/libucxx.cpython-*.so, so this only catches a bundled
         # C++ libucxx.so[.N] -- i.e. FIND_UCXX_CPP silently falling back to the source build.

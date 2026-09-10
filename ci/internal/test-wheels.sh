@@ -11,6 +11,7 @@
 #
 # Optional environment variables:
 #   HIPUCXX_TEST_RESULTS_SUFFIX -- appended to the pytest output dir name
+#   UCXX_VERSION -- pins the hipUCXX wheels installed from BUILD_ARTIFACTS_DIR
 
 set -xeu
 
@@ -24,6 +25,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "${SCRIPT_DIR}/_activate-env.sh"
 # shellcheck source=_install-test-deps.sh
 . "${SCRIPT_DIR}/_install-test-deps.sh"
+# shellcheck source=_wheel-helpers.sh
+. "${SCRIPT_DIR}/_wheel-helpers.sh"
 
 wheels_test_env=$(mktemp -d)
 python3 -m venv "${wheels_test_env}"
@@ -32,23 +35,12 @@ python3 -m venv "${wheels_test_env}"
 
 pip install --upgrade pip
 
-specs=()
-shopt -s nullglob
-for wheel in "${BUILD_ARTIFACTS_DIR}"/*hipucxx*.whl; do
-    IFS=- read -r dist version _ <<< "$(basename "${wheel}")"
-    [[ "${dist}" == "amd_hipucxx" ]] && dist="amd_hipucxx[test]"
-    specs+=("${dist}==${version}")
-done
-shopt -u nullglob
-
-if [ ${#specs[@]} -eq 0 ]; then
-    echo "ERROR: no hipUCXX wheels in ${BUILD_ARTIFACTS_DIR}; nothing to test." >&2
-    exit 1
-fi
-
-mapfile -t specs < <(printf '%s\n' "${specs[@]}" | sort -u)
-
-pip install --find-links "${BUILD_ARTIFACTS_DIR}" "${specs[@]}"
+# No --no-index here, unlike the build: this install resolves the wheels'
+# own runtime dependencies for real.
+install_built_wheel -- \
+    "amd_libhipucxx${UCXX_VERSION:+==${UCXX_VERSION}}" \
+    "amd_hipucxx[test]${UCXX_VERSION:+==${UCXX_VERSION}}" \
+    "amd_distributed_hipucxx${UCXX_VERSION:+==${UCXX_VERSION}}"
 
 src_dir="${SRC_DIR:-/src}/${PROJECT_ID}"
 build_dir="${BUILD_DIR}/${PROJECT_ID}"
