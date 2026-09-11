@@ -63,11 +63,6 @@ SKBUILD_CMAKE_ARGS="$(IFS=';'; echo "${cmake_args[*]}")"
 export SKBUILD_CMAKE_ARGS
 export WHEEL_BUILD_ROOT="${build_dir}"
 
-setup_build_environment
-# libhipcxx is a dependency to build the Python wheels
-_install_artifact_package libhipcxx
-
-export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH}:/opt/rocm-ds"
 wheels_build_env=$(mktemp -d)
 python3 -m venv "${wheels_build_env}"
 # shellcheck source=/dev/null
@@ -88,24 +83,6 @@ python3 -m venv "${wheels_build_env}"
     )
     wheel_cmake="$(IFS=';'; echo "${wheel_cmake_args[*]}")"
 
-# SRC_DIR, BUILD_DIR, and PROJECT_ID are provided by the CI environment
-# (not assigned in this repo); fail fast with a clear message if they are unset.
-: "${SRC_DIR:?SRC_DIR must be set by the CI environment}"
-: "${BUILD_DIR:?BUILD_DIR must be set by the CI environment}"
-: "${PROJECT_ID:?PROJECT_ID must be set by the CI environment}"
-
-# shellcheck disable=SC2153  # SRC_DIR is a CI env var, not a typo of src_dir
-src_dir="${SRC_DIR}/${PROJECT_ID}"
-# shellcheck disable=SC2153  # BUILD_DIR is a CI env var, not a typo of build_dir
-build_dir="${BUILD_DIR}/${PROJECT_ID}"
-install_prefix="${CMAKE_INSTALL_PREFIX:-${INSTALL_DIR}/${PROJECT_ID}}"
-
-if [ -n "${HIPUCXX_WHEEL_REQUIREMENTS:-}" ]; then
-    pip install -r "${HIPUCXX_WHEEL_REQUIREMENTS}"
-fi
-
-read -ra wheel_targets <<< "${HIPUCXX_WHEEL_TARGETS:-py-all}"
-build_args=("${wheel_targets[@]}" -n)
     if [ -n "${build_libhipucxx}" ]; then
         build_rapids_wheel "python/libucxx" "${wheel_cmake}"
         verify_wheel_absent 'amd_libhipucxx*.whl' 'rapids_logger|librapids|rmm/|librmm|libhipmm'
