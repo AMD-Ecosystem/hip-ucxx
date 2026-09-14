@@ -108,7 +108,7 @@ export ROCM_PATH=/opt/rocm
 export CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:${ROCM_PATH}
 
 # Python build dependencies (activate your env first; see Environment setup above)
-# Edit python/requirements.txt extra-index-url if your ROCm version differs from 7.2.3
+# Edit python/requirements.txt extra-index-url if your ROCm version differs from 10.0.0
 pip install -r python/requirements.txt
 
 # Build the C++ library
