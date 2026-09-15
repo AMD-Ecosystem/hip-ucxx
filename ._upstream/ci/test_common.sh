@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
 # SPDX-License-Identifier: BSD-3-Clause
 
 set -euo pipefail
@@ -19,12 +19,18 @@ log_message() {
 }
 
 print_system_stats() {
+  rapids-logger "Number of CPU cores"
+  nproc --all
+
   rapids-logger "Check GPU usage"
   nvidia-smi
 
   rapids-logger "Check NICs"
   awk 'END{print $1}' /etc/hosts
   cat /etc/hosts
+
+  rapids-logger "Check maximum number of pending connections (somaxconn)"
+  cat /proc/sys/net/core/somaxconn
 }
 
 print_ucx_config() {

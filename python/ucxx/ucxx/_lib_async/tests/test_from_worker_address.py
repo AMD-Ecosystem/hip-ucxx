@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
 # SPDX-License-Identifier: BSD-3-Clause
 
 import asyncio
@@ -12,9 +12,16 @@ import pytest
 import ucxx
 from ucxx._lib_async.utils import get_event_loop, hash64bits
 from ucxx._lib_async.utils_test import compute_timeouts
-from ucxx.testing import join_processes, terminate_process
+from ucxx.testing import join_processes, run_in_subprocess, terminate_process
 
 mp = mp.get_context("spawn")
+
+
+# Fixed frame size
+FRAME_SIZE = 10000
+
+# Header format: Recv Tag (Q) + Send Tag (Q) + UCXAddress.length (Q)
+HEADER_STRUCT = struct.Struct("QQQ")
 
 
 def _test_from_worker_address_server(queue, timeout):
@@ -28,7 +35,7 @@ def _test_from_worker_address_server(queue, timeout):
         await ucxx.recv(address_size, tag=0)
 
         # Receive address buffer on tag 0 and create UCXAddress from it
-        remote_address = bytearray(address_size[0])
+        remote_address = np.empty(address_size[0], dtype=np.uint8)
         await ucxx.recv(remote_address, tag=0)
         remote_address = ucxx.get_ucx_address_from_buffer(remote_address)
 
@@ -83,80 +90,59 @@ def test_from_worker_address(pytestconfig):
     async_timeout, join_timeout = compute_timeouts(pytestconfig)
 
     queue = mp.Queue()
+    server_error_q = mp.Queue()
+    client_error_q = mp.Queue()
 
     server = mp.Process(
-        target=_test_from_worker_address_server,
-        args=(queue, async_timeout),
+        target=run_in_subprocess,
+        args=(_test_from_worker_address_server, server_error_q, queue, async_timeout),
     )
     server.start()
 
     client = mp.Process(
-        target=_test_from_worker_address_client,
-        args=(queue, async_timeout),
+        target=run_in_subprocess,
+        args=(_test_from_worker_address_client, client_error_q, queue, async_timeout),
     )
     client.start()
 
     join_processes([client, server], timeout=join_timeout)
-    terminate_process(client)
-    terminate_process(server)
-
-
-def _get_address_info(address=None):
-    # Fixed frame size
-    frame_size = 10000
-
-    # Header format: Recv Tag (Q) + Send Tag (Q) + UCXAddress.length (Q)
-    header_fmt = "QQQ"
-
-    # Data length
-    data_length = frame_size - struct.calcsize(header_fmt)
-
-    # Padding length
-    padding_length = None if address is None else (data_length - address.length)
-
-    # Header + UCXAddress string + padding
-    fixed_size_address_buffer_fmt = header_fmt + str(data_length) + "s"
-
-    assert struct.calcsize(fixed_size_address_buffer_fmt) == frame_size
-
-    return {
-        "frame_size": frame_size,
-        "data_length": data_length,
-        "padding_length": padding_length,
-        "fixed_size_address_buffer_fmt": fixed_size_address_buffer_fmt,
-    }
+    terminate_process(client, error_queue=client_error_q)
+    terminate_process(server, error_queue=server_error_q)
 
 
 def _pack_address_and_tag(address, recv_tag, send_tag):
-    address_info = _get_address_info(address)
+    address_packed = np.empty(FRAME_SIZE, dtype=np.uint8)
 
-    fixed_size_address_packed = struct.pack(
-        address_info["fixed_size_address_buffer_fmt"],
+    HEADER_STRUCT.pack_into(
+        address_packed,  # Buffer to fill
+        0,  # Starting Offset
         recv_tag,  # Recv Tag
         send_tag,  # Send Tag
         address.length,  # Address buffer length
-        (
-            bytearray(address) + bytearray(address_info["padding_length"])
-        ),  # Address buffer + padding
     )
 
-    assert len(fixed_size_address_packed) == address_info["frame_size"]
+    address_start = HEADER_STRUCT.size
+    address_stop = address_start + address.length
+    address_packed[address_start:address_stop] = memoryview(address)
 
-    return fixed_size_address_packed
+    return address_packed
 
 
 def _unpack_address_and_tag(address_packed):
-    address_info = _get_address_info()
+    address_packed = memoryview(address_packed).toreadonly()
 
-    recv_tag, send_tag, address_length, address_padded = struct.unpack(
-        address_info["fixed_size_address_buffer_fmt"],
+    recv_tag, send_tag, address_length = HEADER_STRUCT.unpack_from(
         address_packed,
     )
+
+    address_start = HEADER_STRUCT.size
+    address_stop = address_start + address_length
+    address = address_packed[address_start:address_stop]
 
     # Swap send and recv tags, as they are used by the remote process in the
     # opposite direction.
     return {
-        "address": address_padded[:address_length],
+        "address": address,
         "recv_tag": send_tag,
         "send_tag": recv_tag,
     }
@@ -188,12 +174,10 @@ def _test_from_worker_address_server_fixedsize(num_nodes, queue, timeout):
         for i in range(num_nodes):
             queue.put(address)
 
-        address_info = _get_address_info()
-
         server_tasks = []
         for i in range(num_nodes):
             # Receive fixed-size address+tag buffer on tag 0
-            packed_remote_address = bytearray(address_info["frame_size"])
+            packed_remote_address = np.empty(FRAME_SIZE, dtype=np.uint8)
             await ucxx.recv(packed_remote_address, tag=0)
 
             # Create an async task for client
@@ -247,28 +231,44 @@ def _test_from_worker_address_client_fixedsize(queue, timeout):
 
 
 @pytest.mark.slow
+@pytest.mark.xdist_group("test_from_worker_address_multinode")
 @pytest.mark.parametrize("num_nodes", [1, 2, 4, 8])
 def test_from_worker_address_multinode(pytestconfig, num_nodes):
     async_timeout, join_timeout = compute_timeouts(pytestconfig)
 
     queue = mp.Queue()
+    server_error_q = mp.Queue()
 
     server = mp.Process(
-        target=_test_from_worker_address_server_fixedsize,
-        args=(num_nodes, queue, async_timeout),
+        target=run_in_subprocess,
+        args=(
+            _test_from_worker_address_server_fixedsize,
+            server_error_q,
+            num_nodes,
+            queue,
+            async_timeout,
+        ),
     )
     server.start()
 
     clients = []
+    client_error_qs = []
     for i in range(num_nodes):
+        client_error_q = mp.Queue()
         client = mp.Process(
-            target=_test_from_worker_address_client_fixedsize,
-            args=(queue, async_timeout),
+            target=run_in_subprocess,
+            args=(
+                _test_from_worker_address_client_fixedsize,
+                client_error_q,
+                queue,
+                async_timeout,
+            ),
         )
         client.start()
         clients.append(client)
+        client_error_qs.append(client_error_q)
 
     join_processes(clients + [server], timeout=join_timeout)
-    for client in clients:
-        terminate_process(client)
-    terminate_process(server)
+    for client, client_error_q in zip(clients, client_error_qs):
+        terminate_process(client, error_queue=client_error_q)
+    terminate_process(server, error_queue=server_error_q)

@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #pragma once
@@ -11,9 +11,11 @@
 #include <string>
 #include <thread>
 #include <utility>
+#include <variant>
 
 #include <ucp/api/ucp.h>
 
+#include <ucxx/buffer.h>
 #include <ucxx/component.h>
 #include <ucxx/constructors.h>
 #include <ucxx/context.h>
@@ -25,6 +27,10 @@
 #include <ucxx/worker_progress_thread.h>
 
 namespace ucxx {
+
+namespace experimental {
+class WorkerBuilder;
+}  // namespace experimental
 
 class Address;
 class Buffer;
@@ -73,12 +79,15 @@ class Worker : public Component {
  protected:
   bool _enableFuture{
     false};  ///< Boolean identifying whether the worker was created with future capability
+  bool _enableRequestAttributes{
+    false};  ///< Whether request attributes (e.g. UCP debug info) are queried for each request
   std::mutex _futuresPoolMutex{};  ///< Mutex to access the futures pool
   std::queue<std::shared_ptr<Future>>
     _futuresPool{};  ///< Futures pool to prevent running out of fresh futures
   std::shared_ptr<Notifier> _notifier{nullptr};  ///< Notifier object
   std::shared_ptr<internal::AmData>
     _amData;  ///< Worker data made available to Active Messages callback
+  BufferType _cudaBufferType{BufferType::Invalid};  ///< Preferred buffer type for CUDA allocations
 
  private:
   /**
@@ -135,6 +144,19 @@ class Worker : public Component {
    */
   bool progressPending();
 
+  /**
+   * @brief Set the preferred buffer type for CUDA allocations.
+   *
+   * Configure which buffer type to use when allocating CUDA buffers for incoming
+   * multi-buffer tag receives.
+   *
+   * @param[in] bufferType  the preferred buffer type (must be `BufferType::RMM` or
+   *                        `BufferType::CCCL`).
+   *
+   * @throws std::invalid_argument if bufferType is not RMM or CCCL.
+   */
+  void setCudaBufferType(BufferType bufferType);
+
  protected:
   /**
    * @brief Protected constructor of `ucxx::Worker`.
@@ -165,32 +187,19 @@ class Worker : public Component {
   Worker& operator=(Worker&& o)    = delete;
 
   /**
-   * @brief Constructor of `shared_ptr<ucxx::Worker>`.
+   * @brief Friend declaration for `ucxx::createWorker` with parameters.
    *
-   * The constructor for a `shared_ptr<ucxx::Worker>` object. The default constructor is
-   * made private to ensure all UCXX objects are shared pointers for correct
-   * lifetime management.
-   *
-   * @code{.cpp}
-   * // context is `std::shared_ptr<ucxx::Context>`
-   * auto worker = context->createWorker(false);
-   *
-   * // Equivalent to line above
-   * // auto worker = ucxx::createWorker(context, false);
-   * @endcode
-   *
-   * @param[in] context the context from which to create the worker.
-   * @param[in] enableDelayedSubmission if `true`, each `ucxx::Request` will not be
-   *                                    submitted immediately, but instead delayed to
-   *                                    the progress thread. Requires use of the
-   *                                    progress thread.
-   * @param[in] enableFuture if `true`, notifies the future associated with each
-   *                         `ucxx::Request`, currently used only by `ucxx::python::Worker`.
-   * @returns The `shared_ptr<ucxx::Worker>` object
+   * This friend declaration allows the standalone `ucxx::createWorker` function to access
+   * the protected constructor. See the public declaration for full documentation.
    */
   friend std::shared_ptr<Worker> createWorker(std::shared_ptr<Context> context,
                                               const bool enableDelayedSubmission,
                                               const bool enableFuture);
+
+  /**
+   * @brief Allow experimental::WorkerBuilder to access protected/private constructor.
+   */
+  friend class experimental::WorkerBuilder;
 
   /**
    * @brief `ucxx::Worker` destructor.
@@ -501,6 +510,30 @@ class Worker : public Component {
   [[nodiscard]] bool isFutureEnabled() const;
 
   /**
+   * @brief Inquire if worker has been created with request attributes querying enabled.
+   *
+   * Check whether the worker has been created with request attributes querying enabled.
+   * When enabled, each `ucxx::Request` will have its UCP attributes (such as the debug
+   * string) queried immediately after submission, making them available via
+   * `ucxx::Request::queryAttributes()`. Querying request attributes has a
+   * non-negligible runtime cost and is therefore disabled by default.
+   *
+   * @returns `true` if request attributes querying is enabled, `false` otherwise.
+   */
+  [[nodiscard]] bool isRequestAttributesEnabled() const noexcept;
+
+  /**
+   * @brief Get the preferred buffer type for CUDA allocations.
+   *
+   * Returns the buffer type used when allocating CUDA buffers for incoming
+   * multi-buffer tag receives. Defaults to CCCL if compiled with CCCL support,
+   * otherwise RMM if compiled with RMM support, otherwise Invalid.
+   *
+   * @returns The preferred `BufferType` for CUDA allocations.
+   */
+  [[nodiscard]] BufferType getCudaBufferType() const;
+
+  /**
    * @brief Populate the futures pool.
    *
    * To avoid taking blocking resources (such as the Python GIL) for every new future
@@ -664,21 +697,18 @@ class Worker : public Component {
    * @param[in] trackedRequests the requests tracked by a child of this class to be
    *                            scheduled for cancelation.
    */
-  void scheduleRequestCancel(TrackedRequestsPtr trackedRequests);
+  void scheduleRequestCancel(TrackedRequests trackedRequests);
 
   /**
    * @brief Remove reference to request from internal container.
    *
    * Remove the reference to a specific request from the internal container. This should
    * be called when a request has completed and the `ucxx::Worker` does not need to keep
-   * track of it anymore. The raw pointer to a `ucxx::Request` is passed here as opposed
-   * to the usual `std::shared_ptr<ucxx::Request>` used elsewhere, this is because the
-   * raw pointer address is used as key to the requests reference, and this is called
-   * from the object's destructor.
+   * track of it anymore.
    *
-   * @param[in] request raw pointer to the request
+   * @param[in] request shared pointer to the request
    */
-  void removeInflightRequest(const Request* const request);
+  void removeInflightRequest(std::shared_ptr<Request> request);
 
   /**
    * @brief Check for uncaught tag messages.
@@ -688,6 +718,13 @@ class Worker : public Component {
    * by a corresponding `ucp_tag_recv_*` call. Additionally, returns information about the
    * tag message.
    *
+   * When `remove` is `false` (default), the message remains in the receive queue and
+   * a normal tag receive operation must be posted to consume it. When `remove` is `true`,
+   * the message is removed from the queue and a message handle is returned that can be
+   * passed directly to `tagRecvWithHandle` for efficient consumption, in this case the
+   * caller is required to call `tagRecvWithHandle`, otherwise a warning will be thrown
+   * during destruction of the returned object.
+   *
    * Note this is a non-blocking call, if this is being used to actively check for an
    * incoming message the worker should be constantly progress until a valid probe is
    * returned.
@@ -695,23 +732,29 @@ class Worker : public Component {
    * @code{.cpp}
    * // `worker` is `std::shared_ptr<ucxx::Worker>`
    * auto probe = worker->tagProbe(0);
-   * assert(!probe.first)
+   * assert(!probe->isMatched());
    *
    * // `ep` is a remote `std::shared_ptr<ucxx::Endpoint` to the local `worker`
    * ep->tagSend(buffer, length, 0);
    *
    * probe = worker->tagProbe(0);
-   * assert(probe.first);
-   * assert(probe.second.tag == 0);
-   * assert(probe.second.length == length);
+   * assert(probe->isMatched());
+   * assert(probe->getInfo().tag == 0);
+   * assert(probe->getInfo().length == length);
    * @endcode
    *
-   * @returns pair where first elements is `true` if any uncaught messages were received,
-   *          `false` otherwise, and second element contain the information from the tag
-   *          receive.
+   * @param[in] tag      the tag to match.
+   * @param[in] tagMask  the tag mask to use.
+   * @param[in] remove   if `true`, remove the message from the queue and return a message
+   *                     handle; if `false`, leave the message in the queue.
+   *
+   * @returns TagProbeInfo containing whether a message was matched, the tag receive information
+   *          (when matched=true), and optionally the message handle for efficient reception
+   *          (when matched=true and remove=true).
    */
-  [[nodiscard]] std::pair<bool, TagRecvInfo> tagProbe(const Tag tag,
-                                                      const TagMask tagMask = TagMaskFull);
+  [[nodiscard]] std::shared_ptr<TagProbeInfo> tagProbe(const Tag tag,
+                                                       const TagMask tagMask = TagMaskFull,
+                                                       const bool remove     = false) const;
 
   /**
    * @brief Enqueue a tag receive operation.
@@ -749,6 +792,36 @@ class Worker : public Component {
     size_t length,
     Tag tag,
     TagMask tagMask,
+    const bool enableFuture                      = false,
+    RequestCallbackUserFunction callbackFunction = nullptr,
+    RequestCallbackUserData callbackData         = nullptr);
+
+  /**
+   * @brief Enqueue a tag receive operation using a message handle.
+   *
+   * Enqueue a tag receive operation using a message handle obtained from `tagProbe` with
+   * `remove=true`. This is more efficient than regular `tagRecv` as it doesn't need to
+   * go through the message matching queue again.
+   *
+   * Using a future may be requested by specifying `enableFuture` if the worker
+   * implementation has support for it. If a future is requested, the application must then
+   * await on this future to ensure the transfer has completed.
+   *
+   * @param[in] buffer            a raw pointer to pre-allocated memory where resulting
+   *                              data will be stored. The buffer must be large enough to
+   *                              hold the message data, otherwise the behavior is undefined.
+   *                              The buffer must be pre-allocated.
+   * @param[in] probeInfo         the TagProbeInfo object containing message length and handle.
+   * @param[in] enableFuture      whether a future should be created and subsequently
+   *                              notified.
+   * @param[in] callbackFunction  user-defined callback function to call upon completion.
+   * @param[in] callbackData      user-defined data to pass to the `callbackFunction`.
+   *
+   * @returns Request to be subsequently checked for the completion and its state.
+   */
+  [[nodiscard]] std::shared_ptr<Request> tagRecvWithHandle(
+    void* buffer,
+    std::shared_ptr<TagProbeInfo> probeInfo,
     const bool enableFuture                      = false,
     RequestCallbackUserFunction callbackFunction = nullptr,
     RequestCallbackUserData callbackData         = nullptr);
@@ -942,7 +1015,7 @@ class Worker : public Component {
    *
    * Using a Python future may be requested by specifying `enablePythonFuture`. If a
    * Python future is requested, the Python application must then await on this future to
-   * ensure the transfer has completed. Requires UCXX Python support.
+   * ensure the transfer has completed.
    *
    * @note If a `callbackFunction` is specified, the lifetime of `callbackData` and of any
    * other objects used in the scope of `callbackFunction` must be guaranteed by the caller
@@ -962,6 +1035,60 @@ class Worker : public Component {
     const bool enablePythonFuture                = false,
     RequestCallbackUserFunction callbackFunction = nullptr,
     RequestCallbackUserData callbackData         = nullptr);
+
+  /**
+   * @brief Worker attributes reported by `ucp_worker_query`.
+   */
+  struct Attributes {
+    /// Thread safety level the worker was created with.
+    ucs_thread_mode_t threadMode{UCS_THREAD_MODE_MULTI};
+    /// Maximum allowed header size for `ucp_am_send_nbx`.
+    size_t maxAmHeader{0};
+    /// Worker name used by tracing and analysis tools.
+    std::string name{};
+    /// Maximum debug-string buffer size accepted by `ucp_request_query`.
+    size_t maxDebugString{0};
+  };
+
+  /**
+   * @brief Get the worker's attributes.
+   *
+   * Returns the worker attributes as a struct, querying UCP via `ucp_worker_query` under
+   * the hood. All non-address fields exposed by UCP are queried, use `getAddress()` to
+   * obtain the address.
+   *
+   * @returns An `Attributes` filled with all queried fields.
+   * @throws ucxx::Error if an error occurred while querying worker attributes.
+   */
+  [[nodiscard]] Attributes queryAttributes() const;
 };
 
+/**
+ * @brief Constructor of `shared_ptr<ucxx::Worker>` with parameters.
+ *
+ * The constructor for a `shared_ptr<ucxx::Worker>` object. The default constructor is
+ * made private to ensure all UCXX objects are shared pointers for correct lifetime
+ * management.
+ *
+ * @code{.cpp}
+ *   // context is `std::shared_ptr<ucxx::Context>`
+ *   auto worker = ucxx::createWorker(context, false, false);
+ * @endcode
+ *
+ * @param[in] context the context from which to create the worker.
+ * @param[in] enableDelayedSubmission if `true`, each `ucxx::Request` will not be
+ *                                    submitted immediately, but instead delayed to
+ *                                    the progress thread. Requires use of the
+ *                                    progress thread.
+ * @param[in] enableFuture if `true`, notifies the future associated with each
+ *                         `ucxx::Request`, currently used only by `ucxx::python::Worker`.
+ * @returns The `shared_ptr<ucxx::Worker>` object
+ */
+std::shared_ptr<Worker> createWorker(std::shared_ptr<Context> context,
+                                     const bool enableDelayedSubmission,
+                                     const bool enableFuture);
+
 }  // namespace ucxx
+
+// Include experimental features
+#include <ucxx/experimental/worker_builder.h>

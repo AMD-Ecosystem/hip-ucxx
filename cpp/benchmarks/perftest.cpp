@@ -1,13 +1,13 @@
 /**
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
  * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
  * SPDX-License-Identifier: BSD-3-Clause AND MIT
  */
+#include <sched.h>   // for cpu_set_t, CPU_SET, CPU_ZERO, sched_setaffinity
 #include <unistd.h>  // for getopt, optarg
 
 #include <algorithm>
 #include <atomic>
-#include <cassert>
 #include <cerrno>
 #include <chrono>
 #include <climits>
@@ -29,12 +29,9 @@
 #include <vector>
 
 #ifdef UCXX_BENCHMARKS_ENABLE_CUDA
-#ifndef __HIP_PLATFORM_AMD__
-#include <cuda_runtime.h>
-#else
 #include <ucxx/cuda_runtime.h>
 #endif
-#endif
+
 
 #include <ucxx/api.h>
 #include <ucxx/utils/sockaddr.h>
@@ -59,15 +56,14 @@
 
 #ifdef UCXX_BENCHMARKS_ENABLE_CUDA
 #define CUDA_EXIT_ON_ERROR(operation, context)                                                  \
-  ([&]() {                                                                                      \
+  {                                                                                             \
     cudaError_t err = operation;                                                                \
     if (err != cudaSuccess) {                                                                   \
       std::cerr << "CUDA error in " << context << " at " << __FILE__ << ":" << __LINE__ << ": " \
                 << cudaGetErrorString(err) << std::endl;                                        \
       std::exit(-1);                                                                            \
     }                                                                                           \
-    return err;                                                                                 \
-  })()
+  }
 #endif
 
 enum class ProgressMode {
@@ -142,7 +138,9 @@ struct ApplicationContext {
   bool endpointErrorHandling                   = false;
   bool reuseAllocations                        = true;
   bool verifyResults                           = false;
+  bool loopback                                = false;
   MemoryType memoryType                        = MemoryType::Host;
+  std::vector<unsigned> cpuList                = {};
 };
 
 class ListenerContext {
@@ -251,39 +249,65 @@ static void printUsage(std::string_view executablePath)
   std::cerr << "Usage: " << executablePath << " [server-hostname] [options]" << std::endl;
   std::cerr << std::endl;
   std::cerr << "Parameters are:" << std::endl;
-  std::cerr << "  -t <test>           test to run (required)" << std::endl;
-  std::cerr << "            tag_lat - UCP tag match latency" << std::endl;
-  std::cerr << "             tag_bw - UCP tag match bandwidth" << std::endl;
+  std::cerr << "  -t <test>                   test to run (required)" << std::endl;
+  std::cerr << "                    tag_lat - UCP tag match latency" << std::endl;
+  std::cerr << "                     tag_bw - UCP tag match bandwidth" << std::endl;
+  std::cerr << "  -m <type>                   memory type to use" << std::endl;
+  std::cerr << "                       host - Host/system memory" << std::endl;
 #ifdef UCXX_BENCHMARKS_ENABLE_CUDA
-  std::cerr << "  -m <type>   memory type to use, valid values are: 'host' (default), 'cuda', "
-            << std::endl
-            << "              'cuda-managed', and 'cuda-async'" << std::endl;
-#else
-  std::cerr << "  -m <type>   memory type to use, valid values are: 'host' (default)" << std::endl;
+  std::cerr << "                       cuda - CUDA default memory" << std::endl;
+  std::cerr << "               cuda-managed - CUDA managed memory/unified virtual memory (UVM)"
+            << std::endl;
+  std::cerr << "                 cuda-async - CUDA stream-ordered memory" << std::endl;
+#ifdef UCXX_BENCHMARKS_ENABLE_RMM
+  std::cerr << "                   rmm-cuda - RMM CUDA default memory" << std::endl;
+  std::cerr << "              rmm-cuda-pool - RMM pool backed by CUDA default memory" << std::endl;
+  std::cerr << "             rmm-cuda-async - RMM stream-ordered memory" << std::endl;
+  std::cerr << "     rmm-cuda-async-managed - RMM stream-ordered memory backed by pool"
+            << std::endl;
 #endif
-  std::cerr << "  -P <progress_mode>  worker progress mode to use" << std::endl;
-  std::cerr << "           blocking - Blocking progress mode, equivalent to `ucx_perftest -E sleep`"
+#ifdef UCXX_BENCHMARKS_ENABLE_CCCL
+  std::cerr << "                cccl-device - CCCL device memory pool" << std::endl;
+  std::cerr << "                cccl-shared - CCCL shared resource" << std::endl;
+  std::cerr << "            cccl-cuda-async - CCCL CUDA async resource" << std::endl;
+  std::cerr << "    cccl-cuda-async-managed - CCCL CUDA async managed resource" << std::endl;
+#endif
+#endif
+  std::cerr << "  -P <progress_mode>          worker progress mode to use" << std::endl;
+  std::cerr
+    << "                   blocking - Blocking progress mode, equivalent to `ucx_perftest -E sleep`"
+    << std::endl;
+  std::cerr << "                    polling - Polling progress mode, equivalent to `ucx_perftest "
+               "-E poll` (default)"
+            << std::endl;
+  std::cerr << "            thread-blocking - Blocking progress mode in exclusive progress thread"
+            << std::endl;
+  std::cerr << "             thread-polling - Polling progress mode in exclusive progress thread"
+            << std::endl;
+  std::cerr << "                       wait - Wait progress mode" << std::endl;
+  std::cerr << "  -p <port>                   port number to listen at (12345)" << std::endl;
+  std::cerr << "  -s <size>                   message size (8)" << std::endl;
+  std::cerr << "  -n <iters>                  number of iterations to run (100)" << std::endl;
+  std::cerr << "  -w <iters>                  number of warmup iterations to run (3)" << std::endl;
+  std::cerr << "  -L                          disable reuse memory allocation (enabled)"
             << std::endl;
   std::cerr
-    << "            polling - Polling progress mode, equivalent to `ucx_perftest -E poll` (default)"
+    << "  -e                          create endpoints with error handling support (disabled)"
     << std::endl;
-  std::cerr << "    thread-blocking - Blocking progress mode in exclusive progress thread"
+  std::cerr << "  -v                          verify results (disabled)" << std::endl;
+  std::cerr << "  -l                          use loopback connection: in this case, the process "
+               "will communicate"
             << std::endl;
-  std::cerr << "     thread-polling - Polling progress mode in exclusive progress thread"
-            << std::endl;
-  std::cerr << "               wait - Wait progress mode" << std::endl;
-  std::cerr << "  -p <port>           port number to listen at (12345)" << std::endl;
-  std::cerr << "  -s <size>           message size (8)" << std::endl;
-  std::cerr << "  -n <iters>          number of iterations to run (100)" << std::endl;
-  std::cerr << "  -w <iters>          number of warmup iterations to run (3)" << std::endl;
-  std::cerr << "  -L                  disable reuse memory allocation (enabled)" << std::endl;
-  std::cerr << "  -e                  create endpoints with error handling support (disabled)"
-            << std::endl;
-  std::cerr << "  -v                  verify results (disabled)" << std::endl;
   std::cerr
-    << "  -R <rank>           percentile rank of the percentile data in latency tests (50.0)"
+    << "                              with itself, so passing server hostname is not allowed"
     << std::endl;
-  std::cerr << "  -h                  print this help" << std::endl;
+  std::cerr
+    << "  -c <cpulist>                set affinity to this CPU list (separated by comma) (off)"
+    << std::endl;
+  std::cerr << "  -R <rank>                   percentile rank of the percentile data in latency "
+               "tests (50.0)"
+            << std::endl;
+  std::cerr << "  -h                          print this help" << std::endl;
   std::cerr << std::endl;
 }
 
@@ -373,6 +397,100 @@ static ucs_status_t parsePort(const char* arg, uint16_t* result, const char* par
 }
 
 /**
+ * @brief Parses a comma-separated CPU list string into a vector of CPU indices.
+ *
+ * @param arg Comma-separated string of CPU numbers (e.g. "0,2,4").
+ * @param cpuList Pointer to output vector to populate with parsed CPU indices.
+ * @return UCS_OK on success, UCS_ERR_INVALID_PARAM on parse error or invalid CPU number.
+ */
+static ucs_status_t parseCpuList(const char* arg, std::vector<unsigned>* cpuList)
+{
+  cpuList->clear();
+  const char* ptr = arg;
+  char* endptr;
+
+  while (*ptr != '\0') {
+    errno       = 0;
+    int64_t cpu = std::strtol(ptr, &endptr, 10);
+    if (errno != 0 || endptr == ptr || cpu < 0) {
+      std::cerr << "Invalid CPU number in list: " << arg << std::endl;
+      return UCS_ERR_INVALID_PARAM;
+    }
+    cpuList->push_back(static_cast<unsigned>(cpu));
+
+    if (*endptr == ',') {
+      ptr = endptr + 1;
+    } else if (*endptr == '\0') {
+      break;
+    } else {
+      std::cerr << "Invalid character in CPU list: " << arg << std::endl;
+      return UCS_ERR_INVALID_PARAM;
+    }
+  }
+
+  if (cpuList->empty()) {
+    std::cerr << "Empty CPU list" << std::endl;
+    return UCS_ERR_INVALID_PARAM;
+  }
+
+  return UCS_OK;
+}
+
+/**
+ * @brief Sets the process CPU affinity to the specified list of CPUs.
+ *
+ * Validates that each CPU index is within the system's range, builds a cpu_set_t, and applies it
+ * via sched_setaffinity. If no CPU list is provided, warns when the process is bound to more than
+ * 2 CPUs (matching ucx_perftest behavior).
+ *
+ * @param cpuList Vector of CPU indices to bind to. If empty, only a warning check is performed.
+ * @return UCS_OK on success, UCS_ERR_INVALID_PARAM on failure.
+ */
+static ucs_status_t setCpuAffinity(const std::vector<unsigned>& cpuList)
+{
+  int64_t nprocs = sysconf(_SC_NPROCESSORS_ONLN);
+  if (nprocs < 0) {
+    std::cerr << "Failed to get number of CPUs" << std::endl;
+    return UCS_ERR_INVALID_PARAM;
+  }
+  unsigned nr_cpus = static_cast<unsigned>(nprocs);
+
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+
+  if (!cpuList.empty()) {
+    for (auto cpu : cpuList) {
+      if (cpu >= nr_cpus) {
+        std::cerr << "CPU " << cpu << " out of range [0.." << nr_cpus - 1 << "]" << std::endl;
+        return UCS_ERR_INVALID_PARAM;
+      }
+      CPU_SET(cpu, &cpuset);
+    }
+
+    if (sched_setaffinity(0, sizeof(cpuset), &cpuset) != 0) {
+      std::cerr << "sched_setaffinity() failed: " << strerror(errno) << std::endl;
+      return UCS_ERR_INVALID_PARAM;
+    }
+  } else {
+    if (sched_getaffinity(0, sizeof(cpuset), &cpuset) != 0) {
+      std::cerr << "sched_getaffinity() failed: " << strerror(errno) << std::endl;
+      return UCS_ERR_INVALID_PARAM;
+    }
+
+    unsigned count = 0;
+    for (unsigned i = 0; i < CPU_SETSIZE; ++i) {
+      if (CPU_ISSET(i, &cpuset)) ++count;
+    }
+    if (count > 2) {
+      std::cerr << "Warning: CPU affinity is not set (bound to " << count
+                << " cpus). Performance may be impacted." << std::endl;
+    }
+  }
+
+  return UCS_OK;
+}
+
+/**
  * @brief Parses command-line arguments and populates the application context.
  *
  * Processes command-line options to configure the test type, memory type, progress mode, port,
@@ -389,7 +507,7 @@ ucs_status_t parseCommand(ApplicationContext* appContext, int argc, char* const 
 {
   optind = 1;
   int c;
-  while ((c = getopt(argc, argv, "t:m:P:p:s:n:w:LevR:h")) != -1) {
+  while ((c = getopt(argc, argv, "t:m:P:p:s:n:w:Levlc:R:h")) != -1) {
     switch (c) {
       case 't': {
         auto testAttributes = testAttributesDefinitions.find(optarg);
@@ -451,6 +569,12 @@ ucs_status_t parseCommand(ApplicationContext* appContext, int argc, char* const 
       case 'L': appContext->reuseAllocations = false; break;
       case 'e': appContext->endpointErrorHandling = true; break;
       case 'v': appContext->verifyResults = true; break;
+      case 'l': appContext->loopback = true; break;
+      case 'c': {
+        ucs_status_t status = parseCpuList(optarg, &appContext->cpuList);
+        if (status != UCS_OK) return status;
+        break;
+      }
       case 'R': {
         ucs_status_t status =
           parseDouble(optarg, &appContext->percentileRank, "percentile rank", 0.0, 100.0);
@@ -468,6 +592,11 @@ ucs_status_t parseCommand(ApplicationContext* appContext, int argc, char* const 
   }
 
   if (optind < argc) { appContext->serverAddress = argv[optind]; }
+
+  if (appContext->loopback && appContext->serverAddress != NULL) {
+    std::cerr << "Cannot use loopback connection (-l) with a server hostname" << std::endl;
+    return UCS_ERR_INVALID_PARAM;
+  }
 
   return UCS_OK;
 }
@@ -505,10 +634,24 @@ std::string appendSpaces(const std::string_view input,
  * @param precision The number of digits after the decimal point (default is 2).
  * @return std::string The formatted string representation of the number.
  */
-std::string floatToString(double number, size_t precision = 2)
+std::string floatToString(double number, std::optional<size_t> precision = std::nullopt)
 {
+  auto getPrecision = [precision](double num) -> int {
+    if (precision) return *precision;
+
+    if (num == 0.0) return 5;
+
+    double absNum = std::abs(num);
+
+    // Calculate the order of magnitude
+    int magnitude = absNum < 1.0 ? 0 : static_cast<int>(std::log10(absNum)) + 1;
+
+    // Precision decreases as magnitude increases, starting from 5
+    return std::max(0, 6 - magnitude);
+  };
+
   std::ostringstream oss;
-  oss << std::fixed << std::setprecision(precision) << number;
+  oss << std::fixed << std::setprecision(getPrecision(number)) << number;
   return oss.str();
 }
 
@@ -618,9 +761,11 @@ class Application {
   std::shared_ptr<ucxx::Context> _context{nullptr};
   std::shared_ptr<ucxx::Worker> _worker{nullptr};
   std::shared_ptr<ucxx::Endpoint> _endpoint{nullptr};
+  std::shared_ptr<ucxx::Endpoint> _peerEndpoint{nullptr};
   std::shared_ptr<ucxx::Listener> _listener{nullptr};
   std::unique_ptr<ListenerContext> _listenerContext{nullptr};
   std::shared_ptr<TagMap> _tagMap{nullptr};
+  std::shared_ptr<TagMap> _peerTagMap{nullptr};
 
   std::function<void()> getProgressFunction()
   {
@@ -664,34 +809,75 @@ class Application {
                                           (*_tagMap)[DirectionType::Recv],
                                           ucxx::TagMaskFull));
 
+    // In loopback mode, also schedule the peer (server-side) wireup
+    std::shared_ptr<BufferMap> peerWireupBufferMap;
+    if (_appContext.loopback) {
+      peerWireupBufferMap =
+        std::make_shared<BufferMap>(BufferMap{{DirectionType::Send, std::vector<char>{1, 2, 3}},
+                                              {DirectionType::Recv, std::vector<char>(3, 0)}});
+
+      requests.push_back(_peerEndpoint->tagSend((*peerWireupBufferMap)[DirectionType::Send].data(),
+                                                (*peerWireupBufferMap)[DirectionType::Send].size(),
+                                                (*_peerTagMap)[DirectionType::Send]));
+      requests.push_back(_peerEndpoint->tagRecv((*peerWireupBufferMap)[DirectionType::Recv].data(),
+                                                (*peerWireupBufferMap)[DirectionType::Recv].size(),
+                                                (*_peerTagMap)[DirectionType::Recv],
+                                                ucxx::TagMaskFull));
+    }
+
     // Wait for wireup requests and clear requests
     waitRequests(requests);
 
     // Verify wireup result
-    for (size_t i = 0; i < (*wireupBufferMap)[DirectionType::Send].size(); ++i)
-      assert((*wireupBufferMap)[DirectionType::Recv][i] ==
-             (*wireupBufferMap)[DirectionType::Send][i]);
+    for (size_t i = 0; i < (*wireupBufferMap)[DirectionType::Send].size(); ++i) {
+      if ((*wireupBufferMap)[DirectionType::Recv][i] !=
+          (*wireupBufferMap)[DirectionType::Send][i]) {
+        throw std::runtime_error("Wireup data verification failed at byte " + std::to_string(i));
+      }
+    }
+    if (peerWireupBufferMap) {
+      for (size_t i = 0; i < (*peerWireupBufferMap)[DirectionType::Send].size(); ++i) {
+        if ((*peerWireupBufferMap)[DirectionType::Recv][i] !=
+            (*peerWireupBufferMap)[DirectionType::Send][i]) {
+          throw std::runtime_error("Peer wireup data verification failed at byte " +
+                                   std::to_string(i));
+        }
+      }
+    }
   }
 
-  auto doTransfer()
+  std::unique_ptr<BufferInterface> createBufferInterface()
   {
-    std::unique_ptr<BufferInterface> bufferInterface;
-
-    // Allocate buffers based on memory type
     if (_appContext.memoryType == MemoryType::Host) {
-      // Use the factory method to create the appropriate host buffer interface
-      bufferInterface = HostBufferInterface::createBufferInterface(_appContext.messageSize,
-                                                                   _appContext.reuseAllocations);
+      return HostBufferInterface::createBufferInterface(_appContext.messageSize,
+                                                        _appContext.reuseAllocations);
 #ifdef UCXX_BENCHMARKS_ENABLE_CUDA
+#ifdef UCXX_BENCHMARKS_ENABLE_RMM
+    } else if (isRmmMemoryType(_appContext.memoryType)) {
+      return RmmBufferInterfaceBase::createBufferInterface(
+        _appContext.memoryType, _appContext.messageSize, _appContext.reuseAllocations);
+#endif
+#ifdef UCXX_BENCHMARKS_ENABLE_CCCL
+    } else if (isCcclMemoryType(_appContext.memoryType)) {
+      return CcclBufferInterfaceBase::createBufferInterface(
+        _appContext.memoryType, _appContext.messageSize, _appContext.reuseAllocations);
+#endif
     } else {
-      // Use the factory method to create the appropriate CUDA buffer interface
-      bufferInterface = CudaBufferInterfaceBase::createBufferInterface(
+      return CudaBufferInterfaceBase::createBufferInterface(
         _appContext.memoryType, _appContext.messageSize, _appContext.reuseAllocations);
 #else
     } else {
       throw std::runtime_error("Memory type not supported.");
 #endif
     }
+  }
+
+  auto doTransfer()
+  {
+    auto bufferInterface = createBufferInterface();
+
+    std::unique_ptr<BufferInterface> peerBufferInterface;
+    if (_appContext.loopback) { peerBufferInterface = createBufferInterface(); }
 
     std::vector<std::shared_ptr<ucxx::Request>> requests;
 
@@ -704,22 +890,43 @@ class Application {
                            _appContext.messageSize,
                            (*_tagMap)[DirectionType::Recv],
                            ucxx::TagMaskFull)};
+      if (_appContext.loopback) {
+        requests.push_back(_peerEndpoint->tagSend(peerBufferInterface->getSendPtr(),
+                                                  _appContext.messageSize,
+                                                  (*_peerTagMap)[DirectionType::Send]));
+        requests.push_back(_peerEndpoint->tagRecv(peerBufferInterface->getRecvPtr(),
+                                                  _appContext.messageSize,
+                                                  (*_peerTagMap)[DirectionType::Recv],
+                                                  ucxx::TagMaskFull));
+      }
     } else {
-      if (_isServer)
+      if (_appContext.loopback) {
+        requests = {_endpoint->tagSend(bufferInterface->getSendPtr(),
+                                       _appContext.messageSize,
+                                       (*_tagMap)[DirectionType::Send]),
+                    _peerEndpoint->tagRecv(peerBufferInterface->getRecvPtr(),
+                                           _appContext.messageSize,
+                                           (*_peerTagMap)[DirectionType::Recv],
+                                           ucxx::TagMaskFull)};
+      } else if (_isServer) {
         requests = {_endpoint->tagRecv(bufferInterface->getRecvPtr(),
                                        _appContext.messageSize,
                                        (*_tagMap)[DirectionType::Recv],
                                        ucxx::TagMaskFull)};
-      else
+      } else {
         requests = {_endpoint->tagSend(
           bufferInterface->getSendPtr(), _appContext.messageSize, (*_tagMap)[DirectionType::Send])};
+      }
     }
 
     // Wait for requests and clear requests
     waitRequests(requests);
     auto stop = std::chrono::high_resolution_clock::now();
 
-    if (_appContext.verifyResults) { bufferInterface->verifyResults(_appContext.messageSize); }
+    if (_appContext.verifyResults) {
+      bufferInterface->verifyResults(_appContext.messageSize);
+      if (peerBufferInterface) { peerBufferInterface->verifyResults(_appContext.messageSize); }
+    }
 
     return stop - start;
   }
@@ -784,9 +991,9 @@ class Application {
                      double messageRateOverall)
   {
     std::cout << "                " << appendSpaces(std::to_string(iteration), 15)
-              << appendSpaces(floatToString(percentile, 3), 11)
-              << appendSpaces(floatToString(overheadAverage, 3), 10)
-              << appendSpaces(floatToString(overheadOverall, 3), 10)
+              << appendSpaces(floatToString(percentile), 11)
+              << appendSpaces(floatToString(overheadAverage), 10)
+              << appendSpaces(floatToString(overheadOverall), 10)
               << appendSpaces(floatToString(bandwidthAverage), 11)
               << appendSpaces(floatToString(bandwidthOverall), 11)
               << appendSpaces(floatToString(messageRateAverage), 12)
@@ -795,13 +1002,11 @@ class Application {
 
  public:
   explicit Application(ApplicationContext&& appContext)
-    : _appContext(appContext), _isServer(appContext.serverAddress == NULL)
+    : _appContext(appContext), _isServer(appContext.serverAddress == NULL && !appContext.loopback)
   {
 #ifdef UCXX_BENCHMARKS_ENABLE_CUDA
-    // Check CUDA support if CUDA memory is requested
-    if (appContext.memoryType == MemoryType::Cuda ||
-        appContext.memoryType == MemoryType::CudaManaged ||
-        appContext.memoryType == MemoryType::CudaAsync) {
+    // Check CUDA support if CUDA or RMM device memory is requested
+    if (appContext.memoryType != MemoryType::Host) {
       CUDA_EXIT_ON_ERROR(cudaSetDevice(0), "CUDA device initialization");
     }
 #endif
@@ -816,12 +1021,25 @@ class Application {
     _context = UCXX_EXIT_ON_ERROR(ucxx::createContext({}, ucpFeatures), "Context creation");
     _worker  = UCXX_EXIT_ON_ERROR(_context->createWorker(), "Worker creation");
 
-    _tagMap = std::make_shared<TagMap>(TagMap{
-      {DirectionType::Send, _isServer ? ucxx::Tag{0} : ucxx::Tag{1}},
-      {DirectionType::Recv, _isServer ? ucxx::Tag{1} : ucxx::Tag{0}},
-    });
+    if (_appContext.loopback) {
+      // In loopback mode, _endpoint acts as the "client" side and
+      // _peerEndpoint acts as the "server" side.
+      _tagMap     = std::make_shared<TagMap>(TagMap{
+            {DirectionType::Send, ucxx::Tag{1}},
+            {DirectionType::Recv, ucxx::Tag{0}},
+      });
+      _peerTagMap = std::make_shared<TagMap>(TagMap{
+        {DirectionType::Send, ucxx::Tag{0}},
+        {DirectionType::Recv, ucxx::Tag{1}},
+      });
+    } else {
+      _tagMap = std::make_shared<TagMap>(TagMap{
+        {DirectionType::Send, _isServer ? ucxx::Tag{0} : ucxx::Tag{1}},
+        {DirectionType::Recv, _isServer ? ucxx::Tag{1} : ucxx::Tag{0}},
+      });
+    }
 
-    if (_isServer) {
+    if (_isServer || _appContext.loopback) {
       _listenerContext =
         std::make_unique<ListenerContext>(_worker, _appContext.endpointErrorHandling);
       _listener = UCXX_EXIT_ON_ERROR(
@@ -840,15 +1058,29 @@ class Application {
 
     auto progress = getProgressFunction();
 
-    if (_isServer) {
+    if (_appContext.loopback) {
+      // Connect to our own listener
+      _endpoint = UCXX_EXIT_ON_ERROR(
+        _worker->createEndpointFromHostname(
+          "127.0.0.1", _appContext.listenerPort, _appContext.endpointErrorHandling),
+        "Self-endpoint creation");
+
+      // Wait for the listener to accept our connection
+      while (_listenerContext->isAvailable())
+        progress();
+
+      _peerEndpoint = _listenerContext->getEndpoint();
+
+      printServerHeader(
+        appContext.testAttributes->description, appContext.memoryType, appContext.memoryType);
+      printClientHeader(appContext.testAttributes->category);
+    } else if (_isServer) {
       std::cout << "Waiting for connection..." << std::endl;
 
       // Block until client connects
       while (_listenerContext->isAvailable())
         progress();
-    }
 
-    if (_isServer) {
       _endpoint = _listenerContext->getEndpoint();
       printServerHeader(
         appContext.testAttributes->description, appContext.memoryType, appContext.memoryType);
@@ -942,7 +1174,7 @@ class Application {
  * @brief Entry point for the UCXX performance test application.
  *
  * Parses command-line arguments, initializes the application context, and runs the selected UCX tag
- * matching performance test as either server or client.
+ * matching performance test as server, client, or loopback (-l).
  *
  * @return int Returns 0 on success, or -1 if argument parsing fails.
  */
@@ -950,6 +1182,7 @@ int main(int argc, char** argv)
 {
   ApplicationContext appContext;
   if (parseCommand(&appContext, argc, argv) != UCS_OK) return -1;
+  if (setCpuAffinity(appContext.cpuList) != UCS_OK) return -1;
 
   auto app = Application(std::move(appContext));
   app.run();

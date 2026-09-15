@@ -6,6 +6,7 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+permissions: {}
 jobs:
   pr-builder:
     needs:
@@ -13,6 +14,7 @@ jobs:
       - changed-files
       - checks
       - conda-cpp-build
+      - conda-python-build
       - devcontainer
       - docs-build
       - conda-cpp-tests
@@ -24,22 +26,39 @@ jobs:
       - wheel-build-distributed-ucxx
       - wheel-tests-distributed-ucxx
       - telemetry-setup
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/pr-builder.yaml@branch-25.10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/pr-builder.yaml@release/26.06
     if: always()
     with:
       needs: ${{ toJSON(needs) }}
   check-nightly-ci:
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      pull-requests: read
     env:
-      RAPIDS_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Get PR Info
+        id: get-pr-info
+        uses: nv-gha-runners/get-pr-info@090577647b8ddc4e06e809e264f7881650ecdccf # main
       - name: Check if nightly CI is passing
         uses: rapidsai/shared-actions/check_nightly_success/dispatch@main
         with:
-          repo: ucxx
+          repo: ${{ github.repository }}
+          target-branch: ${{ fromJSON(steps.get-pr-info.outputs.pr-info).base.ref }}
   telemetry-setup:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     continue-on-error: true
     env:
       OTEL_SERVICE_NAME: "pr-ucxx"
@@ -50,85 +69,261 @@ jobs:
         if: ${{ vars.TELEMETRY_ENABLED == 'true' }}
         uses: rapidsai/shared-actions/telemetry-dispatch-stash-base-env-vars@main
   changed-files:
-    secrets: inherit
     needs: telemetry-setup
-    uses: rapidsai/shared-workflows/.github/workflows/changed-files.yaml@branch-25.10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/changed-files.yaml@release/26.06
     with:
       files_yaml: |
+        build_docs:
+          - '**'
+          - '!.clang-format'
+          - '!.devcontainer/**'
+          - '!.github/CODEOWNERS'
+          - '!.github/copy-pr-bot.yaml'
+          - '!.github/ops-bot.yaml'
+          - '!.github/release.yml'
+          - '!.github/workflows/trigger-breaking-change-alert.yaml'
+          - '!.pre-commit-config.yaml'
+          - '!.shellcheckrc'
+          - '!CPPLINT.cfg'
+          - '!ci/build_wheel*.sh'
+          - '!ci/check_style.sh'
+          - '!ci/release/update-version.sh'
+          - '!ci/run_python*.sh'
+          - '!ci/test_cpp.sh'
+          - '!ci/test_python*.sh'
+          - '!ci/test_wheel*.sh'
+          - '!ci/validate_wheel.sh'
         test_cpp:
           - '**'
           - '!.devcontainer/**'
+          - '!.github/CODEOWNERS'
+          - '!.github/copy-pr-bot.yaml'
+          - '!.github/ops-bot.yaml'
+          - '!.github/release.yml'
+          - '!.github/workflows/trigger-breaking-change-alert.yaml'
           - '!.pre-commit-config.yaml'
           - '!.shellcheckrc'
           - '!README.md'
+          - '!ci/build_docs.sh'
+          - '!ci/build_wheel*.sh'
+          - '!ci/check_style.sh'
           - '!ci/release/update-version.sh'
+          - '!ci/run_python*.sh'
+          - '!ci/test_python*.sh'
+          - '!ci/test_wheel*.sh'
+          - '!ci/validate_wheel.sh'
           - '!docs/**'
           - '!python/**'
-        test_python:
+        test_python_conda:
           - '**'
+          - '!.clang-format'
           - '!.devcontainer/**'
+          - '!.github/CODEOWNERS'
+          - '!.github/copy-pr-bot.yaml'
+          - '!.github/ops-bot.yaml'
+          - '!.github/release.yml'
+          - '!.github/workflows/trigger-breaking-change-alert.yaml'
           - '!.pre-commit-config.yaml'
           - '!.shellcheckrc'
+          - '!CPPLINT.cfg'
           - '!README.md'
+          - '!ci/build_docs.sh'
+          - '!ci/build_wheel*.sh'
+          - '!ci/check_style.sh'
           - '!ci/release/update-version.sh'
+          - '!ci/test_cpp.sh'
+          - '!ci/test_wheel*.sh'
+          - '!ci/validate_wheel.sh'
+          - '!docs/**'
+          - '!python/distributed-ucxx/**'
+        test_python_distributed_conda:
+          - '**'
+          - '!.clang-format'
+          - '!.devcontainer/**'
+          - '!.github/CODEOWNERS'
+          - '!.github/copy-pr-bot.yaml'
+          - '!.github/ops-bot.yaml'
+          - '!.github/release.yml'
+          - '!.github/workflows/trigger-breaking-change-alert.yaml'
+          - '!.pre-commit-config.yaml'
+          - '!.shellcheckrc'
+          - '!CPPLINT.cfg'
+          - '!README.md'
+          - '!ci/build_docs.sh'
+          - '!ci/build_wheel*.sh'
+          - '!ci/check_style.sh'
+          - '!ci/release/update-version.sh'
+          - '!ci/test_cpp.sh'
+          - '!ci/test_wheel*.sh'
+          - '!ci/validate_wheel.sh'
+          - '!docs/**'
+        test_python_wheels:
+          - '**'
+          - '!.clang-format'
+          - '!.devcontainer/**'
+          - '!.github/CODEOWNERS'
+          - '!.github/copy-pr-bot.yaml'
+          - '!.github/ops-bot.yaml'
+          - '!.github/release.yml'
+          - '!.github/workflows/trigger-breaking-change-alert.yaml'
+          - '!.pre-commit-config.yaml'
+          - '!.shellcheckrc'
+          - '!CPPLINT.cfg'
+          - '!README.md'
+          - '!ci/build_cpp.sh'
+          - '!ci/build_docs.sh'
+          - '!ci/check_style.sh'
+          - '!ci/release/update-version.sh'
+          - '!ci/test_cpp.sh'
+          - '!ci/test_python*.sh'
+          - '!conda/**'
+          - '!docs/**'
+          - '!python/distributed-ucxx/**'
+        test_python_distributed_wheels:
+          - '**'
+          - '!.clang-format'
+          - '!.devcontainer/**'
+          - '!.github/CODEOWNERS'
+          - '!.github/copy-pr-bot.yaml'
+          - '!.github/ops-bot.yaml'
+          - '!.github/release.yml'
+          - '!.github/workflows/trigger-breaking-change-alert.yaml'
+          - '!.pre-commit-config.yaml'
+          - '!.shellcheckrc'
+          - '!CPPLINT.cfg'
+          - '!README.md'
+          - '!ci/build_cpp.sh'
+          - '!ci/build_docs.sh'
+          - '!ci/check_style.sh'
+          - '!ci/release/update-version.sh'
+          - '!ci/test_cpp.sh'
+          - '!ci/test_python*.sh'
+          - '!conda/**'
           - '!docs/**'
   checks:
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/checks.yaml@branch-25.10
     needs: telemetry-setup
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/checks.yaml@release/26.06
     with:
       enable_check_generated_files: false
       ignored_pr_jobs: telemetry-summarize
   conda-cpp-build:
     needs: checks
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-build.yaml@branch-25.10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-build.yaml@release/26.06
     with:
       build_type: pull-request
+      node_type: cpu8
       script: ci/build_cpp.sh
-  docs-build:
+  conda-python-build:
     needs: conda-cpp-build
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/custom-job.yaml@branch-25.10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/conda-python-build.yaml@release/26.06
+    with:
+      build_type: pull-request
+      script: ci/build_python.sh
+      # Build a conda package for each CUDA x ARCH x minimum supported Python version
+      matrix_filter: group_by({CUDA_VER, ARCH}) | map(min_by(.PY_VER | split(".") | map(tonumber)))
+  docs-build:
+    needs: [conda-cpp-build, conda-python-build, changed-files]
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/custom-job.yaml@release/26.06
+    if: fromJSON(needs.changed-files.outputs.changed_file_groups).build_docs
     with:
       build_type: pull-request
       node_type: "gpu-l4-latest-1"
       arch: "amd64"
-      container_image: "rapidsai/ci-conda:25.10-latest"
+      container_image: "rapidsai/ci-conda:26.06-latest"
       script: "ci/build_docs.sh"
   conda-cpp-tests:
     needs: [conda-cpp-build, changed-files]
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-tests.yaml@branch-25.10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/conda-cpp-tests.yaml@release/26.06
     if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_cpp
     with:
       build_type: pull-request
       container-options: "--cap-add CAP_SYS_PTRACE --shm-size=8g --ulimit=nofile=1000000:1000000"
       script: ci/test_cpp.sh
   conda-python-tests:
-    needs: [conda-cpp-build, changed-files]
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/conda-python-tests.yaml@branch-25.10
-    if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python
+    needs: [conda-cpp-build, conda-python-build, changed-files]
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/conda-python-tests.yaml@release/26.06
+    if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python_conda
     with:
       build_type: pull-request
       container-options: "--cap-add CAP_SYS_PTRACE --shm-size=8g --ulimit=nofile=1000000:1000000"
       script: ci/test_python.sh
   conda-python-distributed-tests:
-    needs: [conda-cpp-build, changed-files]
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/conda-python-tests.yaml@branch-25.10
-    if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python
+    needs: [conda-cpp-build, conda-python-build, changed-files]
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/conda-python-tests.yaml@release/26.06
+    if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python_distributed_conda
     with:
       build_type: pull-request
       script: "ci/test_python_distributed.sh"
       container-options: "--cap-add CAP_SYS_PTRACE --shm-size=8g --ulimit=nofile=1000000:1000000"
   wheel-build-libucxx:
     needs: checks
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@branch-25.10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@release/26.06
     with:
       build_type: pull-request
+      node_type: cpu8
       script: ci/build_wheel_libucxx.sh
       # build for every combination of arch and CUDA version, but only for the latest Python
       matrix_filter: group_by([.ARCH, (.CUDA_VER|split(".")|map(tonumber)|.[0])]) | map(max_by(.PY_VER|split(".")|map(tonumber)))
@@ -136,54 +331,87 @@ jobs:
       package-type: cpp
   wheel-build-ucxx:
     needs: wheel-build-libucxx
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@branch-25.10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@release/26.06
     with:
       build_type: pull-request
+      node_type: cpu8
       script: ci/build_wheel_ucxx.sh
       package-name: ucxx
       package-type: python
+      # Build a wheel for each CUDA x ARCH x minimum supported Python version
+      matrix_filter: group_by({CUDA_VER, ARCH}) | map(min_by(.PY_VER | split(".") | map(tonumber)))
   wheel-tests-ucxx:
     needs: [wheel-build-ucxx, changed-files]
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-test.yaml@branch-25.10
-    if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-test.yaml@release/26.06
+    if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python_wheels
     with:
       build_type: pull-request
       container-options: "--cap-add CAP_SYS_PTRACE --shm-size=8g --ulimit=nofile=1000000:1000000"
       script: ci/test_wheel_ucxx.sh
   wheel-build-distributed-ucxx:
     needs: checks
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@branch-25.10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@release/26.06
     with:
       build_type: pull-request
+      node_type: cpu8
       script: ci/build_wheel_distributed_ucxx.sh
       package-name: distributed_ucxx
       package-type: python
+      pure-wheel: true
   wheel-tests-distributed-ucxx:
     needs: [wheel-build-ucxx, wheel-build-distributed-ucxx, changed-files]
-    secrets: inherit
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-test.yaml@branch-25.10
-    if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-test.yaml@release/26.06
+    if: fromJSON(needs.changed-files.outputs.changed_file_groups).test_python_distributed_wheels
     with:
       build_type: pull-request
       container-options: "--cap-add CAP_SYS_PTRACE --shm-size=8g --ulimit=nofile=1000000:1000000"
       script: ci/test_wheel_distributed_ucxx.sh
   devcontainer:
-    secrets: inherit
     needs: [checks, telemetry-setup]
-    uses: rapidsai/shared-workflows/.github/workflows/build-in-devcontainer.yaml@branch-25.10
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    uses: rapidsai/shared-workflows/.github/workflows/build-in-devcontainer.yaml@release/26.06
     with:
       arch: '["amd64", "arm64"]'
-      cuda: '["13.0"]'
+      cuda: '["13.2"]'
       node_type: "cpu8"
-      rapids-aux-secret-1: GIST_REPO_READ_ORG_GITHUB_TOKEN
       env: |
         SCCACHE_DIST_MAX_RETRIES=inf
         SCCACHE_SERVER_LOG=sccache=debug
         SCCACHE_DIST_FALLBACK_TO_LOCAL_COMPILE=false
-        SCCACHE_DIST_AUTH_TOKEN_VAR=RAPIDS_AUX_SECRET_1
       build_command: |
         sccache --zero-stats;
         build-all -j0 --verbose 2>&1 | tee telemetry-artifacts/build.log;
@@ -192,6 +420,8 @@ jobs:
     # This job must use a self-hosted runner to record telemetry traces.
     runs-on: linux-amd64-cpu4
     needs: pr-builder
+    permissions:
+      actions: write
     if: ${{ vars.TELEMETRY_ENABLED == 'true' && !cancelled() }}
     continue-on-error: true
     steps:

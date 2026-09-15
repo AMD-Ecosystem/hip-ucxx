@@ -14,16 +14,10 @@ c_stdlib_version:
   - "2.28"
 
 cmake:
-  - ">=3.26.4"
-
-python:
-  - 3.10
-  - 3.11
-  - 3.12
-  - 3.13
+  - ">=4.0"
 
 ucx:
-  - "==1.17.*"  # [os.environ.get("RAPIDS_CUDA_VERSION", "").startswith("12")]
+  - "==1.18.*"  # [os.environ.get("RAPIDS_CUDA_VERSION", "").startswith("12")]
   - "==1.19.*"  # [not os.environ.get("RAPIDS_CUDA_VERSION", "").startswith("12")]
 
 gmock:
@@ -31,6 +25,3 @@ gmock:
 
 gtest:
   - ">=1.13.0"
-
-rapids_version:
-  - "25.10.*"

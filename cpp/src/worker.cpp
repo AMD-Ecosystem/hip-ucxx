@@ -1,8 +1,9 @@
 /**
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <ios>
 #include <memory>
@@ -22,6 +23,7 @@
 #include <ucxx/request_am.h>
 #include <ucxx/request_flush.h>
 #include <ucxx/request_tag.h>
+#include <ucxx/tag_probe.h>
 #include <ucxx/typedefs.h>
 #include <ucxx/utils/callback_notifier.h>
 #include <ucxx/utils/file_descriptor.h>
@@ -37,6 +39,11 @@ Worker::Worker(std::shared_ptr<Context> context,
 {
   if (context == nullptr || context->getHandle() == nullptr)
     throw std::runtime_error("Context not initialized");
+#if UCXX_ENABLE_CCCL
+  _cudaBufferType = BufferType::CCCL;
+#elif UCXX_ENABLE_RMM
+  _cudaBufferType = BufferType::RMM;
+#endif
 
   ucp_worker_params_t params = {.field_mask  = UCP_WORKER_PARAM_FIELD_THREAD_MODE,
                                 .thread_mode = UCS_THREAD_MODE_MULTI};
@@ -142,7 +149,6 @@ std::shared_ptr<Worker> createWorker(std::shared_ptr<Context> context,
                                      const bool enableFuture)
 {
   auto worker = std::shared_ptr<Worker>(new Worker(context, enableDelayedSubmission, enableFuture));
-
   // We can only get a `shared_ptr<Worker>` for the Active Messages callback after it's
   // been created, thus this cannot be in the constructor.
   if (worker->_amData != nullptr) {
@@ -195,12 +201,39 @@ std::string Worker::getInfo()
   return utils::decodeTextFileDescriptor(TextFileDescriptor);
 }
 
+Worker::Attributes Worker::queryAttributes() const
+{
+  ucp_worker_attr_t attr = {
+    .field_mask = UCP_WORKER_ATTR_FIELD_THREAD_MODE | UCP_WORKER_ATTR_FIELD_MAX_AM_HEADER |
+                  UCP_WORKER_ATTR_FIELD_NAME | UCP_WORKER_ATTR_FIELD_MAX_INFO_STRING};
+
+  utils::ucsErrorThrow(ucp_worker_query(_handle, &attr));
+
+  return Attributes{
+    .threadMode     = attr.thread_mode,
+    .maxAmHeader    = attr.max_am_header,
+    .name           = std::string(attr.name, ::strnlen(attr.name, sizeof(attr.name))),
+    .maxDebugString = attr.max_debug_string,
+  };
+}
+
 bool Worker::isDelayedRequestSubmissionEnabled() const
 {
   return _delayedSubmissionCollection->isDelayedRequestSubmissionEnabled();
 }
 
 bool Worker::isFutureEnabled() const { return _enableFuture; }
+
+bool Worker::isRequestAttributesEnabled() const noexcept { return _enableRequestAttributes; }
+
+BufferType Worker::getCudaBufferType() const { return _cudaBufferType; }
+
+void Worker::setCudaBufferType(BufferType bufferType)
+{
+  if (bufferType != BufferType::RMM && bufferType != BufferType::CCCL)
+    throw std::invalid_argument("cudaBufferType must be BufferType::RMM or BufferType::CCCL");
+  _cudaBufferType = bufferType;
+}
 
 void Worker::initBlockingProgressMode()
 {
@@ -543,7 +576,7 @@ size_t Worker::cancelInflightRequests(uint64_t period, uint64_t maxAttempts)
   return canceled;
 }
 
-void Worker::scheduleRequestCancel(TrackedRequestsPtr trackedRequests)
+void Worker::scheduleRequestCancel(TrackedRequests trackedRequests)
 {
   {
     std::lock_guard<std::mutex> lock(_inflightRequestsMutex);
@@ -553,7 +586,7 @@ void Worker::scheduleRequestCancel(TrackedRequestsPtr trackedRequests)
       __func__,
       this,
       _handle,
-      trackedRequests->_inflight.size() + trackedRequests->_canceling.size());
+      trackedRequests.inflight.size() + trackedRequests.canceling.size());
     _inflightRequestsToCancel->merge(std::move(trackedRequests));
   }
 }
@@ -568,7 +601,7 @@ std::shared_ptr<Request> Worker::registerInflightRequest(std::shared_ptr<Request
   return request;
 }
 
-void Worker::removeInflightRequest(const Request* const request)
+void Worker::removeInflightRequest(std::shared_ptr<Request> request)
 {
   {
     std::lock_guard<std::mutex> lock(_inflightRequestsMutex);
@@ -576,17 +609,18 @@ void Worker::removeInflightRequest(const Request* const request)
   }
 }
 
-TagRecvInfo::TagRecvInfo(const ucp_tag_recv_info_t& info)
-  : senderTag(Tag(info.sender_tag)), length(info.length)
-{
-}
-
-std::pair<bool, TagRecvInfo> Worker::tagProbe(const Tag tag, const TagMask tagMask)
+std::shared_ptr<TagProbeInfo> Worker::tagProbe(const Tag tag,
+                                               const TagMask tagMask,
+                                               const bool remove) const
 {
   ucp_tag_recv_info_t info;
-  ucp_tag_message_h tag_message = ucp_tag_probe_nb(_handle, tag, tagMask, 0, &info);
+  ucp_tag_message_h tag_message = ucp_tag_probe_nb(_handle, tag, tagMask, remove ? 1 : 0, &info);
 
-  return {tag_message != NULL, TagRecvInfo(info)};
+  if (tag_message != NULL) {
+    return createTagProbeInfo(info, remove ? tag_message : nullptr);
+  } else {
+    return createTagProbeInfo();
+  }
 }
 
 std::shared_ptr<Request> Worker::tagRecv(void* buffer,
@@ -603,6 +637,32 @@ std::shared_ptr<Request> Worker::tagRecv(void* buffer,
                                                   enableFuture,
                                                   callbackFunction,
                                                   callbackData));
+}
+
+std::shared_ptr<Request> Worker::tagRecvWithHandle(void* buffer,
+                                                   std::shared_ptr<TagProbeInfo> probeInfo,
+                                                   const bool enableFuture,
+                                                   RequestCallbackUserFunction callbackFunction,
+                                                   RequestCallbackUserData callbackData)
+{
+  if (!probeInfo->isMatched()) { throw std::invalid_argument("TagProbeInfo must be matched"); }
+
+  // getHandle() will throw runtime_error if handle is nullptr or consumed
+  try {
+    probeInfo->getHandle();
+  } catch (const std::runtime_error& e) {
+    throw std::logic_error(std::string("TagProbeInfo handle validation failed: ") + e.what());
+  }
+
+  auto worker = std::dynamic_pointer_cast<Worker>(shared_from_this());
+  auto request =
+    registerInflightRequest(createRequestTag(worker,
+                                             data::TagReceiveWithHandle(buffer, probeInfo),
+                                             enableFuture,
+                                             callbackFunction,
+                                             callbackData));
+
+  return request;
 }
 
 std::shared_ptr<Address> Worker::getAddress()

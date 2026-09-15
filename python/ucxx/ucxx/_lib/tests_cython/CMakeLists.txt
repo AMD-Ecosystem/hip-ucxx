@@ -1,6 +1,9 @@
 # =================================================================================
-# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES.
-# SPDX-License-Identifier: BSD 3-Clause License
+# cmake-format: off
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026, NVIDIA CORPORATION & AFFILIATES.
+# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
+# cmake-format: on
 # =================================================================================
 
 set(cython_sources test_cython.pyx)

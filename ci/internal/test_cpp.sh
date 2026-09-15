@@ -32,5 +32,7 @@ if [ ${#run_targets[@]} -eq 0 ]; then
     exit 0
 fi
 
+ulimit -n 65536
+
 cd "${src_dir}"
 ./run.hip.sh --build-dir "${build_dir}" "${run_targets[@]}"

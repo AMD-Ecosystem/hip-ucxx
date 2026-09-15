@@ -1,13 +1,15 @@
 /**
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <ucp/api/ucp.h>
 
@@ -56,21 +58,14 @@ class RecvAmMessage {
    * @param[in] request             request to be later notified/delivered to user.
    * @param[in] buffer              buffer containing the received data
    * @param[in] receiverCallback    receiver callback to execute when request completes.
+   * @param[in] userHeader          user-defined header associated with the received message.
    */
   RecvAmMessage(internal::AmData* amData,
                 ucp_ep_h ep,
                 std::shared_ptr<RequestAm> request,
                 std::shared_ptr<Buffer> buffer,
-                AmReceiverCallbackType receiverCallback = AmReceiverCallbackType());
-
-  /**
-   * @brief Set the UCP request.
-   *
-   * Set the underlying UCP request (`_request` attribute) of the `RequestAm`.
-   *
-   * @param[in] request the UCP request associated to the active message receive operation.
-   */
-  void setUcpRequest(void* request);
+                AmReceiverCallbackType receiverCallback = AmReceiverCallbackType(),
+                std::vector<std::byte> userHeader       = {});
 
   /**
    * @brief Execute the `ucxx::Request::callback()`.
@@ -86,12 +81,16 @@ class RecvAmMessage {
 };
 
 typedef std::unordered_map<ucp_ep_h, std::queue<std::shared_ptr<RequestAm>>> AmPoolType;
-typedef std::unordered_map<RequestAm*, std::shared_ptr<RecvAmMessage>> RecvAmMessageMapType;
+typedef std::map<std::shared_ptr<RequestAm>,
+                 std::shared_ptr<RecvAmMessage>,
+                 std::owner_less<std::shared_ptr<RequestAm>>>
+  RecvAmMessageMapType;
 
 typedef std::unordered_map<AmReceiverCallbackIdType, AmReceiverCallbackType>
   AmReceiverCallbackMapType;
-typedef std::unordered_map<AmReceiverCallbackOwnerType, AmReceiverCallbackMapType>
-  AmReceiverCallbackOwnerMapType;
+typedef std::
+  unordered_map<AmReceiverCallbackOwnerType, AmReceiverCallbackMapType, AmReceiverCallbackOwnerHash>
+    AmReceiverCallbackOwnerMapType;
 
 /**
  * @brief Active Message data owned by a `ucxx::Worker`.

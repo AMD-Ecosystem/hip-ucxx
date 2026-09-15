@@ -10,11 +10,7 @@
 #include <memory>
 #include <vector>
 
-#ifndef __HIP_PLATFORM_AMD__
-#include <cuda_runtime_api.h>
-#else
 #include <ucxx/cuda_runtime.h>
-#endif
 
 #include <ucxx/api.h>
 

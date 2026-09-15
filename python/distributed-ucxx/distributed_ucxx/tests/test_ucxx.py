@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES.
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES.
 # SPDX-License-Identifier: BSD-3-Clause
 
 from __future__ import annotations
@@ -248,7 +248,7 @@ async def test_large_cupy(ucxx_loop, n, cleanup):
 async def test_ping_pong_numba(ucxx_loop):
     np = pytest.importorskip("numpy")
     numba = pytest.importorskip("numba")
-    import numba.cuda
+    pytest.importorskip("numba.cuda")
 
     arr = np.arange(10)
     arr = numba.cuda.to_device(arr)

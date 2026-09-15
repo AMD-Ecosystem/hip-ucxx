@@ -1,7 +1,9 @@
 # ======================================================================================================
-# SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION & AFFILIATES. All rights
+# cmake-format: off
+# SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: BSD-3-Clause AND MIT
+# cmake-format: on
 # ======================================================================================================
 
 find_package(Threads REQUIRED)
@@ -9,6 +11,8 @@ find_package(Threads REQUIRED)
 # Add CUDA support option for benchmarks
 option(UCXX_BENCHMARKS_ENABLE_CUDA "Enable CUDA support in benchmarks" OFF)
 message(VERBOSE "UCXX: Enable CUDA support in benchmarks: ${UCXX_BENCHMARKS_ENABLE_CUDA}")
+option(UCXX_BENCHMARKS_ENABLE_CCCL "Enable CCCL buffer support in benchmarks" OFF)
+message(VERBOSE "UCXX: Enable CCCL support in benchmarks: ${UCXX_BENCHMARKS_ENABLE_CCCL}")
 
 # ##################################################################################################
 # * compiler function -----------------------------------------------------------------------------
@@ -38,6 +42,21 @@ function(ConfigureBench CMAKE_BENCH_NAME)
   # Add CUDA support if enabled
   if(UCXX_BENCHMARKS_ENABLE_CUDA)
     target_compile_definitions(${CMAKE_BENCH_NAME} PRIVATE UCXX_BENCHMARKS_ENABLE_CUDA)
+  endif()
+
+  # RMM memory resources for CUDA benchmarks (requires UCXX_ENABLE_RMM and get_rmm.cmake)
+  if(UCXX_BENCHMARKS_ENABLE_CUDA AND UCXX_ENABLE_RMM)
+    target_compile_definitions(${CMAKE_BENCH_NAME} PRIVATE UCXX_BENCHMARKS_ENABLE_RMM)
+    target_link_libraries(${CMAKE_BENCH_NAME} PRIVATE rmm::rmm)
+  endif()
+
+  # CCCL buffer support for benchmarks (requires UCXX_ENABLE_CCCL)
+  if(UCXX_BENCHMARKS_ENABLE_CUDA
+     AND UCXX_ENABLE_CCCL
+     AND UCXX_BENCHMARKS_ENABLE_CCCL
+  )
+    target_compile_definitions(${CMAKE_BENCH_NAME} PRIVATE UCXX_BENCHMARKS_ENABLE_CCCL)
+    target_link_libraries(${CMAKE_BENCH_NAME} PRIVATE CCCL::CCCL)
   endif()
 
   add_custom_command(

@@ -5,7 +5,7 @@
 from .ucxx import (
     UCXXBackend,
     UCXXBackendLegacyPrefix,
-)  # noqa: F401
+)
 
 
 from ._version import __git_commit__, __version__
@@ -16,3 +16,10 @@ try:
     numba.hip.pose_as_cuda()
 except ModuleNotFoundError:
     pass
+
+__all__ = [
+    "UCXXBackend",
+    "UCXXBackendLegacyPrefix",
+    "__git_commit__",
+    "__version__",
+]

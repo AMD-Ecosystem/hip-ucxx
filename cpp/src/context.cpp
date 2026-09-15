@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
  * SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
  * SPDX-License-Identifier: BSD-3-Clause AND MIT
  */
@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ucxx/context.h>

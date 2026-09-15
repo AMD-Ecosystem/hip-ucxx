@@ -4,6 +4,10 @@
  */
 #pragma once
 
+#ifndef __HIP_PLATFORM_AMD__
+#include <cuda_runtime.h>
+#else // __HIP_PLATFORM_AMD__
+
 #include <hip/hip_runtime.h>
 
 // types
@@ -68,3 +72,5 @@
 #ifndef cudaStreamSynchronize
 #define cudaStreamSynchronize hipStreamSynchronize
 #endif
+
+#endif // __HIP_PLATFORM_AMD__

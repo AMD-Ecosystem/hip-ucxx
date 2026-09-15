@@ -1,29 +1,64 @@
 /**
- * SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+ * SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#include <memory>
 #include <stdexcept>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include <ucp/api/ucp.h>
 
 #include <ucp/api/ucp_def.h>
 #include <ucxx/request_data.h>
+#include <ucxx/tag_probe.h>
 #include <ucxx/typedefs.h>
 
 namespace ucxx {
 
 namespace data {
 
-AmSend::AmSend(const void* const buffer,
-               const size_t length,
-               const ucs_memory_type memoryType,
-               const std::optional<AmReceiverCallbackInfo> receiverCallbackInfo)
+AmSend::AmSend(const void* const buffer, const size_t length, const AmSendParams& params)
   : _buffer(buffer),
     _length(length),
-    _memoryType(memoryType),
-    _receiverCallbackInfo(receiverCallbackInfo)
+    _iov(),
+    _count(length),
+    _flags(params.flags),
+    _datatype(params.datatype),
+    _memoryType(params.memoryType),
+    _memoryTypePolicy(params.memoryTypePolicy),
+    _receiverCallbackInfo(params.receiverCallbackInfo),
+    _userHeader(params.userHeader)
 {
+  if (_datatype != ucp_dt_make_contig(1))
+    throw std::runtime_error("Contiguous AM send requires datatype `ucp_dt_make_contig(1)`.");
+
+  if (_buffer == nullptr && _length > 0)
+    throw std::runtime_error("Buffer cannot be a nullptr when length is > 0.");
+}
+
+AmSend::AmSend(std::vector<ucp_dt_iov_t> iov, const AmSendParams& params)
+  : _buffer(nullptr),
+    _length(0),
+    _iov(std::move(iov)),
+    _count(_iov.size()),
+    _flags(params.flags),
+    _datatype(params.datatype),
+    _memoryType(params.memoryType),
+    _memoryTypePolicy(params.memoryTypePolicy),
+    _receiverCallbackInfo(params.receiverCallbackInfo),
+    _userHeader(params.userHeader)
+{
+  if (_datatype != UCP_DATATYPE_IOV)
+    throw std::runtime_error("IOV AM send requires datatype `UCP_DATATYPE_IOV`.");
+
+  if (_iov.empty()) throw std::runtime_error("IOV cannot be empty.");
+
+  for (const auto& segment : _iov) {
+    if (segment.buffer == nullptr && segment.length > 0)
+      throw std::runtime_error("IOV segment buffer cannot be nullptr when segment length is > 0.");
+  }
 }
 
 AmReceive::AmReceive() {}
@@ -77,6 +112,20 @@ TagReceive::TagReceive(void* buffer,
                        const ::ucxx::TagMask tagMask)
   : _buffer(buffer), _length(length), _tag(tag), _tagMask(tagMask)
 {
+}
+
+TagReceiveWithHandle::TagReceiveWithHandle(void* buffer, std::shared_ptr<TagProbeInfo> probeInfo)
+  : _buffer(buffer), _probeInfo(std::move(probeInfo))
+{
+  if (_buffer == nullptr) throw std::runtime_error("Buffer cannot be a nullptr.");
+  if (!_probeInfo->isMatched()) throw std::runtime_error("TagProbeInfo must be matched.");
+  // getInfo() and getHandle() will throw runtime_error if invalid, so we can just call them
+  try {
+    _probeInfo->getInfo();
+    _probeInfo->getHandle();
+  } catch (const std::runtime_error& e) {
+    throw std::runtime_error(std::string("TagProbeInfo validation failed: ") + e.what());
+  }
 }
 
 TagMultiSend::TagMultiSend(const std::vector<const void*>& buffer,

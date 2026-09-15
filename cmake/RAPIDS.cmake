@@ -1,24 +1,17 @@
 # =============================================================================
-# Copyright (c) 2021-2025, NVIDIA CORPORATION.
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-# in compliance with the License. You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License
-# is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-# or implied. See the License for the specific language governing permissions and limitations under
-# the License.
-# =============================================================================
+# cmake-format: off
+# SPDX-FileCopyrightText: Copyright (c) 2021-2026, NVIDIA CORPORATION.
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
-# SPDX-License-Identifier: Apache-2.0 AND MIT
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
+# cmake-format: on
 # =============================================================================
 #
 # This is the preferred entry point for projects using rapids-cmake
 #
 
 # cmake-lint: disable=W0106
+
+cmake_minimum_required(VERSION 4.0 FATAL_ERROR)
 
 # Allow users to control which version is used
 if(DEFINED ENV{RAPIDS_CMAKE_VERSION})
@@ -37,7 +30,7 @@ if(NOT rapids-cmake-repo)
     set(rapids-cmake-repo $ENV{RAPIDS_CMAKE_REPO})
   else()
     # Define a default repo if the user doesn't set one
-    set(rapids-cmake-repo "ROCm-DS/ROCmDS-CMake")
+    set(rapids-cmake-repo "AMD-Ecosystem/ROCmDS-CMake")
   endif()
 endif()
 

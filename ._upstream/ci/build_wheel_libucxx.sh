@@ -1,5 +1,6 @@
 #!/bin/bash
-# Copyright (c) 2024-2025, NVIDIA CORPORATION.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2026, NVIDIA CORPORATION.
+# SPDX-License-Identifier: BSD-3-Clause
 
 set -euo pipefail
 
@@ -27,7 +28,7 @@ rapids-pip-retry install \
 # 0 really means "add --no-build-isolation" (ref: https://github.com/pypa/pip/issues/5735)
 export PIP_NO_BUILD_ISOLATION=0
 
-export SKBUILD_CMAKE_ARGS="-DUCXX_ENABLE_RMM=ON"
+export SKBUILD_CMAKE_ARGS="-DUCXX_ENABLE_RMM=ON -DUCXX_ENABLE_CCCL=ON"
 
 ./ci/build_wheel.sh "${package_name}" "${package_dir}"
 

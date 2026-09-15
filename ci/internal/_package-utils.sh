@@ -30,29 +30,28 @@ _collect_matching_files() {
     shopt -u nullglob
 }
 
-_install_rpm_globs() {
-    local label=$1
-    shift
-    local -a matches=()
-    _collect_matching_files matches "$@"
-    if ((${#matches[@]} == 0)); then
-        echo "ERROR: no ${label} RPM found in ${BUILD_ARTIFACTS_DIR}" >&2
-        return 1
-    fi
-    #dnf install -y "${matches[@]}"
-    rpm -ivh --force --nodeps "${matches[@]}"
-}
+_install_artifact_package() {
+    local name=$1
+    local pkg_fmt ext processed pattern
+    pkg_fmt=$(package_format) || return 1
+    [[ "${pkg_fmt}" == "RPM" ]] && ext="rpm" || ext="deb"
 
-_install_deb_globs() {
-    local label=$1
-    shift
+    # make each - or _ match either separator: rocmds-logger -> rocmds[-_]logger
+    processed="${name//[-_]/[-_]}"
+    pattern="${BUILD_ARTIFACTS_DIR}/*${processed}*.${ext}"
+
     local -a matches=()
-    _collect_matching_files matches "$@"
+    _collect_matching_files matches "${pattern}"
     if ((${#matches[@]} == 0)); then
-        echo "ERROR: no ${label} DEB found in ${BUILD_ARTIFACTS_DIR}" >&2
+        echo "ERROR: no ${name} ${ext} package found in ${BUILD_ARTIFACTS_DIR}" >&2
         return 1
     fi
-    apt install -y "${matches[@]}"
+
+    if [[ "${pkg_fmt}" == "RPM" ]]; then
+        rpm -ivh --force --nodeps "${matches[@]}"
+    else
+        apt install -y "${matches[@]}"
+    fi
 }
 
 activate_python_environment() {
@@ -93,20 +92,10 @@ hipucxx_has_target() {
 }
 
 install_cpp_packages_from_artifacts() {
-    local pkg_fmt
-    pkg_fmt=$(package_format)
-
-    if [[ "${pkg_fmt}" == "RPM" ]]; then
-        _install_rpm_globs rocmds_logger "${BUILD_ARTIFACTS_DIR}"/*rocmds*logger*.rpm
-        _install_rpm_globs rocmds-cmake "${BUILD_ARTIFACTS_DIR}"/*rocmds*cmake*.rpm
-        _install_rpm_globs libhipcxx "${BUILD_ARTIFACTS_DIR}"/*libhipcxx*.rpm
-        _install_rpm_globs hipmm "${BUILD_ARTIFACTS_DIR}"/*hipmm*.rpm
-    else
-        _install_deb_globs rocmds_logger "${BUILD_ARTIFACTS_DIR}"/*rocmds*logger*.deb
-        _install_deb_globs rocmds-cmake "${BUILD_ARTIFACTS_DIR}"/*rocmds*cmake*.deb
-        _install_deb_globs libhipcxx "${BUILD_ARTIFACTS_DIR}"/*libhipcxx*.deb
-        _install_deb_globs hipmm "${BUILD_ARTIFACTS_DIR}"/*hipmm*.deb
-    fi
+    _install_artifact_package rocmds-logger
+    _install_artifact_package rocmds-cmake
+    _install_artifact_package libhipcxx
+    _install_artifact_package hipmm
 
     local rocmds_home="/opt/rocm-ds"
     export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}:${rocmds_home}"

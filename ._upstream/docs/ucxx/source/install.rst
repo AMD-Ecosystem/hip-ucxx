@@ -42,7 +42,7 @@ Change `cuda-version` to pin to a different CUDA minor version if you'd like.
 
     # CUDA 13
     conda create -n ucx -c conda-forge -c rapidsai \
-      cuda-version=13.0 ucxx
+      cuda-version=13.2 ucxx
 
     # CUDA 12
     conda create -n ucx -c conda-forge -c rapidsai \
@@ -75,7 +75,9 @@ UCXX has no direct dependency on CUDA, but the package specifies the
 ``-cuXY`` prefix so that the correct ``libucx-cuXY`` package is selected.
 This is also the reason why there are no CPU-only UCXX packages
 available at the moment, CPU-only builds of the UCX library are not
-currently available in PyPI.
+currently available in PyPI. The ``libucx-cuXY`` packages are built without
+RDMA support, so UCX must be installed manually if InfiniBand or RoCE is
+required.
 
 Source
 ------
@@ -94,7 +96,7 @@ Required to build UCXX from source.
 
     # Inside the main directory of the ucxx repository
     conda env create -n ucxx \
-        -f conda/environments/all_cuda-129_arch-x86_64.yaml
+        -f conda/environments/all_cuda-129_arch-$(uname -m).yaml
 
 .. note::
     Check existing files in the same `conda/environments/` directory for other CUDA
@@ -111,17 +113,17 @@ Only necessary to build also UCX from source.
         automake make libtool pkg-config
 
 
-UCX >= 1.17.0
+UCX >= 1.18.0
 ^^^^^^^^^^^^^
 
-Instructions for building UCX >= 1.17.0 (minimum version supported by UCXX), make sure to change ``git checkout v1.17.0`` to a newer version if desired:
+Instructions for building UCX >= 1.18.0 (minimum version supported by UCXX), make sure to change ``git checkout v1.18.0`` to a newer version if desired:
 
 ::
 
     conda activate ucx
     git clone https://github.com/openucx/ucx
     cd ucx
-    git checkout v1.17.0
+    git checkout v1.18.0
     ./autogen.sh
     mkdir build
     cd build
@@ -142,13 +144,13 @@ It is possible to enable InfiniBand support via the conda-forge rdma-core packag
     conda install -n ucxx -c conda-forge rdma-core
 
 
-After installing the necessary dependencies, it's now time to build UCX from source, make sure to change ``git checkout v1.17.0`` to a newer version if desired:
+After installing the necessary dependencies, it's now time to build UCX from source, make sure to change ``git checkout v1.18.0`` to a newer version if desired:
 
 ::
 
     git clone https://github.com/openucx/ucx
     cd ucx
-    git checkout v1.17.0
+    git checkout v1.18.0
     ./autogen.sh
     mkdir build
     cd build
@@ -217,7 +219,7 @@ UCXX with UCX from PyPI
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 CUDA-enabled builds of the UCX libraries are available from PyPI, under the names ``libucx-cu12`` (CUDA 12) and ``libucx-cu13`` (CUDA 13).
-Notice that those builds do not currently include InfiniBand support, if InfiniBand is required you will
+Notice that those builds do not currently include InfiniBand or RoCE support, if RDMA is required you will
 need to provide a custom UCX install as described in the "UCXX with custom UCX install" section.
 
 To build UCXX using those UCX packages (to avoid needing to build UCX from source), run the following.
@@ -236,15 +238,15 @@ UCXX packages are built against the oldest version of UCX that UCXX supports, an
 of ABI-compatible UCX versions.
 
 You can use packages from PyPI to customize the UCX version used at runtime.
-For example, to switch to using UCX 1.19 at runtime, run the following.
+For example, to switch to using UCX 1.20 at runtime, run the following.
 
 ::
 
     # CUDA 13
-    pip install 'libucx-cu13>=1.19.0,<1.20'
+    pip install 'libucx-cu13>=1.20.0,<1.21'
 
     # CUDA 12
-    pip install 'libucx-cu12>=1.19.0,<1.20'
+    pip install 'libucx-cu12>=1.20.0,<1.21'
 
 
 UCXX with UCX system install

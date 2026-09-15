@@ -1,9 +1,12 @@
 # =================================================================================
-# SPDX-FileCopyrightText: Copyright (c) 2022-2025, NVIDIA CORPORATION & AFFILIATES.
+# cmake-format: off
+# SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: BSD-3-Clause AND MIT
+# cmake-format: on
 # =================================================================================
-cmake_minimum_required(VERSION 3.30.4 FATAL_ERROR)
+
+cmake_minimum_required(VERSION 4.0 FATAL_ERROR)
 
 include(../cmake/rapids_config.cmake)
 include(rapids-cmake)
@@ -42,13 +45,19 @@ option(BUILD_EXAMPLES "Configure CMake to build examples" OFF)
 option(BUILD_SHARED_LIBS "Build UCXX shared libraries" ON)
 option(UCXX_BUILD_PYTHON_LIB "Build Python API library" OFF)
 option(UCXX_ENABLE_RMM "Enable support for CUDA multi-buffer transfer with RMM" OFF)
+# TODO: Flip UCXX_ENABLE_CCCL default to OFF once devcontainer builds pass -DUCXX_ENABLE_CCCL=ON
+option(UCXX_ENABLE_CCCL "Enable support for CUDA buffer with CCCL" ON)
 option(DISABLE_DEPRECATION_WARNINGS "Disable warnings generated from deprecated declarations." OFF)
 
 message(VERBOSE "UCXX: Configure CMake to build tests: ${BUILD_TESTS}")
 message(VERBOSE "UCXX: Configure CMake to build benchmarks: ${BUILD_BENCHMARKS}")
 message(VERBOSE "UCXX: Configure CMake to build examples: ${BUILD_EXAMPLES}")
 message(VERBOSE "UCXX: Build UCXX shared libraries: ${BUILD_SHARED_LIBS}")
-message(VERBOSE "UCXX: Enable support for CUDA multi-buffer transfer with RMM: ${UCXX_ENABLE_RMM}")
+message(
+  VERBOSE
+  "UCXX: Enable support for CUDA multi-buffer transfer with RMM (DEPRECATED): ${UCXX_ENABLE_RMM}"
+)
+message(VERBOSE "UCXX: Enable support for CUDA buffer with CCCL: ${UCXX_ENABLE_CCCL}")
 message(
   VERBOSE
   "UCXX: Disable warnings generated from deprecated declarations: ${DISABLE_DEPRECATION_WARNINGS}"
@@ -91,7 +100,14 @@ rapids_find_package(
 rapids_cpm_init(OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/../versions.json)
 # find rmm
 if(UCXX_ENABLE_RMM)
+  message(DEPRECATION "UCXX_ENABLE_RMM is deprecated and will be removed in a future release. "
+                      "Use UCXX_ENABLE_CCCL instead."
+  )
   include(cmake/thirdparty/get_rmm.cmake)
+endif()
+# find cccl
+if(UCXX_ENABLE_CCCL)
+  include(cmake/thirdparty/get_cccl.cmake)
 endif()
 # find or install GoogleTest
 if(BUILD_TESTS)
@@ -114,6 +130,8 @@ add_library(
   src/context.cpp
   src/delayed_submission.cpp
   src/endpoint.cpp
+  src/experimental/context_builder.cpp
+  src/experimental/worker_builder.cpp
   src/header.cpp
   src/inflight_requests.cpp
   src/internal/request_am.cpp
@@ -131,6 +149,7 @@ add_library(
   src/request_stream.cpp
   src/request_tag.cpp
   src/request_tag_multi.cpp
+  src/tag_probe.cpp
   src/worker.cpp
   src/worker_progress_thread.cpp
   src/utils/callback_notifier.cpp
@@ -167,6 +186,13 @@ target_compile_definitions(ucxx PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:${UCXX_CXX_DEF
 if(UCXX_ENABLE_RMM)
   target_link_libraries(ucxx PUBLIC rmm::rmm)
   target_compile_definitions(ucxx PUBLIC UCXX_ENABLE_RMM)
+endif()
+
+# Enable CCCL if necessary
+if(UCXX_ENABLE_CCCL)
+  target_compile_definitions(ucxx PUBLIC UCXX_ENABLE_CCCL)
+  target_link_libraries(ucxx PRIVATE CCCL::CCCL)
+  target_sources(ucxx PRIVATE src/buffer_cccl.cpp)
 endif()
 
 # Specify the target module library dependencies
@@ -298,9 +324,8 @@ endif()
 # ##################################################################################################
 # * packaging using CPACK --------------------------------------------------------------------------
 
-install(
-  FILES ${CMAKE_CURRENT_LIST_DIR}/../LICENSE ${CMAKE_CURRENT_LIST_DIR}/../NOTICE.txt
-  DESTINATION ${CMAKE_INSTALL_DOCDIR}
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/../LICENSE ${CMAKE_CURRENT_LIST_DIR}/../NOTICE.txt
+        DESTINATION ${CMAKE_INSTALL_DOCDIR}
 )
 
 set(CPACK_PACKAGE_NAME "libhipucxx")
@@ -309,12 +334,15 @@ set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(CPACK_PACKAGE_VENDOR "Advanced Micro Devices, Inc.")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "C++ interface for UCX communication on AMD GPUs")
-set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/ROCm-DS/hip-ucxx")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/AMD-Ecosystem/hip-ucxx")
 
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_LIST_DIR}/../LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_LIST_DIR}/../README.md")
 
-set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/rocm-ds" CACHE PATH "Package install prefix.")
+set(CPACK_PACKAGING_INSTALL_PREFIX
+    "/opt/rocm-ds"
+    CACHE PATH "Package install prefix."
+)
 
 set(CPACK_GENERATOR "RPM")
 set(CPACK_RPM_PACKAGE_LICENSE "BSD-3-Clause AND MIT")
