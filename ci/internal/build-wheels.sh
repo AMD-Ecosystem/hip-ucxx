@@ -93,7 +93,7 @@ python3 -m venv "${wheels_build_env}"
         # branch, which resolves against this wheel instead of recompiling the C++ library here.
         install_built_wheel --no-deps --no-index -- \
             "amd_libhipucxx${UCXX_VERSION:+==${UCXX_VERSION}}"
-        build_rapids_wheel "python/ucxx" "${wheel_cmake};-DFIND_UCXX_CPP=ON" "${ucxx_wheel_config[@]}"
+        build_rapids_wheel "python/ucxx" "${wheel_cmake};-DFIND_UCXX_CPP=ON;-DUCXX_BUILD_TESTS=ON" "${ucxx_wheel_config[@]}"
         # The Cython module is ucxx/_lib/libucxx.cpython-*.so, so this only catches a bundled
         # C++ libucxx.so[.N] -- i.e. FIND_UCXX_CPP silently falling back to the source build.
         verify_wheel_absent 'amd_hipucxx*.whl' 'libucxx\.so'
