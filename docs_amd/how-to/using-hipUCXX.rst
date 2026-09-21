@@ -15,7 +15,7 @@ templates for building your own application with hip-ucxx, or for adding it to e
 C++ examples
 ============
 
-The C++ examples are located in `cpp/examples <https://github.com/AMD-Ecosystem/hip-ucxx/tree/release/rocmds-26.03/cpp/examples>`_.
+The C++ examples are located in `cpp/examples <https://github.com/AMD-Ecosystem/hip-ucxx/tree/release/26.09/cpp/examples>`_.
 See :ref:`building-ucxx` for instructions on setting up your developer environment.
 
 To build the C++ examples, use the provided ``build.hip.sh`` script:
@@ -80,7 +80,7 @@ Tag-based communication uses ``tagSend()`` and ``tagRecv()``:
    send_request->checkError();
 
 Linking against hip-ucxx in CMake
---------------------------------
+---------------------------------
 
 To use hip-ucxx in your own CMake project:
 

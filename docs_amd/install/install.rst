@@ -23,10 +23,10 @@ hip-ucxx also requires a working installation of `UCX <https://www.openucx.org/>
 instructions on building UCX from source with the required configuration.
 
 Install hip-ucxx via AMD PyPI
-============================
+=============================
 
 Packaged versions of hip-ucxx and its dependencies are distributed via
-`AMD PyPI <https://pypi.amd.com/rocm-7.2.3/simple/>`_. This section discusses how to install
+`AMD PyPI <https://pypi.amd.com/rocm-10.0.0/simple/>`_. This section discusses how to install
 hip-ucxx via this package index.
 
 Set up a Python environment
@@ -57,7 +57,7 @@ With your environment activated, install hip-ucxx using pip and the AMD PyPI URL
 
 .. code-block:: bash
 
-   pip install amd-hipucxx==0.1.0 --extra-index-url=https://pypi.amd.com/rocm-7.2.3/simple/
+   pip install amd-hipucxx==0.2.0 --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
 
 This will also install the ``amd-libhipucxx`` dependency, which provides the underlying C++ shared
 library.
@@ -66,4 +66,4 @@ To also install the Dask Distributed backend:
 
 .. code-block:: bash
 
-   pip install amd-distributed-hipucxx==0.1.0 --extra-index-url=https://pypi.amd.com/rocm-7.2.3/simple/
+   pip install amd-distributed-hipucxx==0.2.0 --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/

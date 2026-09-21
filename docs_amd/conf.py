@@ -7,7 +7,7 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-version_number = "0.1.0"  # TODO: Parse this from a centralized location.
+version_number = "0.2.0"  # TODO: Parse this from a centralized location.
 left_nav_title = f"hipUCXX {version_number} documentation"
 
 # for PDF output on Read the Docs
@@ -24,7 +24,7 @@ all_article_info_author = ""
 external_projects_current_project = "hipUCXX"
 
 html_context = {
-    "docs_header_version": "26.03"
+    "docs_header_version": "26.09"
 }
 html_theme = "rocm_docs_theme"
 html_theme_options = {
