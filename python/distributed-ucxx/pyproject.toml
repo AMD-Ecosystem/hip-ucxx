@@ -21,18 +21,19 @@ license = "BSD-3-Clause AND MIT"
 license-files = ["LICENSE", "NOTICE.txt"]
 requires-python = ">=3.11"
 dependencies = [
-    "numba-hip",
     "pyyaml>=6",
     "amd-hipucxx==0.2.*",
+    "dask>=2026.1.1,<2026.1.2",
+    "distributed>=2026.1.1,<2026.1.2",
 ]
 classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 
 [project.entry-points."distributed.comm.backends"]
@@ -48,6 +49,7 @@ docs = [
 test = [
     "amd-hipdf",
     "amd-cupy",
+    "numba-hip",
     "numpy>=1.23,<3.0a0",
     "pytest",
     "pytest-rerunfailures!=16.0.0",

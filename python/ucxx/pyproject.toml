@@ -24,7 +24,6 @@ license-files = ["LICENSE", "NOTICE.txt"]
 requires-python = ">=3.11"
 dependencies = [
     "amd-libhipucxx==0.2.*",
-    "numba-hip",
     "numpy>=1.23,<3.0a0",
     "amd-hipmm==5.0.*",
     "hip-python-interop==10.0.*",
@@ -35,9 +34,9 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 
 [project.entry-points."cmake.prefix"]
@@ -48,6 +47,7 @@ test = [
     "cloudpickle",
     "amd-hipdf",
     "amd-cupy",
+    "numba-hip",
     "pytest",
     "pytest-asyncio>=1.0.0",
     "pytest-rerunfailures!=16.0.0",

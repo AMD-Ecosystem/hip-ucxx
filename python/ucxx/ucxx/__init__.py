@@ -28,13 +28,6 @@ else:
     libucxx.load_library()
     del libucxx
 
-try:
-    import numba.hip
-
-    numba.hip.pose_as_cuda()
-except ModuleNotFoundError:
-    pass
-
 logger = logging.getLogger("ucx")
 
 # Notice, if we have to update environment variables we need to do it

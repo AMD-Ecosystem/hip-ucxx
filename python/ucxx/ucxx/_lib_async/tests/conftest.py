@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2022-2026, NVIDIA CORPORATION & AFFILIATES.
-# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: BSD-3-Clause AND MIT
 
 import asyncio
 import gc
@@ -10,6 +11,13 @@ import pytest
 
 import ucxx
 from ucxx._lib_async.pytest_stash_keys import ASYNCIO_PLUGIN_TIMEOUT_STASH_KEY
+
+try:
+    import numba.hip
+
+    numba.hip.pose_as_cuda()
+except ModuleNotFoundError:
+    pass
 
 # Prevent calls such as `cudf = pytest.importorskip("cudf")` from initializing
 # a CUDA context. Such calls may cause tests that must initialize the CUDA
