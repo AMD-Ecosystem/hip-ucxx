@@ -66,6 +66,12 @@ cmake_args=(
     "-DCMAKE_VERBOSE_MAKEFILE=ON"
     "-DCMAKE_INSTALL_PREFIX=${install_prefix}"
     "-DUCXX_ENABLE_RMM=ON"
+    # UCX comes from the amd-libucx package (compiled from the amd-ucx-sdist
+    # sdist); the builder wrapper exports ucx_DIR to its cmake config dir. Pass
+    # it explicitly so rapids_find_package(ucx) resolves deterministically for
+    # both the dev build and every wheel pass. Guarded so a bare local build
+    # without it falls back to CMAKE_PREFIX_PATH / a system UCX.
+    ${ucx_DIR:+"-Ducx_DIR=${ucx_DIR}"}
     # CPM honours CPM_<pkg>_SOURCE only as a CMake variable, never from the
     # environment, so these have to stay -D args on the configure line.
     ${use_local_cpm_sources:+"-DCPM_rmm_SOURCE=${SRC_DIR}/hipmm"}

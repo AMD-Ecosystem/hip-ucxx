@@ -61,23 +61,41 @@ For installing pre-built packages via AMD PyPI, see the
 ## Dependencies
 
 hip-ucxx requires UCX (≥ 1.18.0) built with ROCm support. Pre-built system
-packages typically do not include ROCm support, so building from source is
-recommended.
+packages typically do not include ROCm support.
 
-Install the RDMA/InfiniBand system packages first:
+**Recommended: `amd-libucx` (pip).** The easiest way to get a ROCm-enabled UCX is
+the `amd-libucx` package, which ships as a source distribution and compiles UCX
+with ROCm support at install time:
 
 ```bash
-# Ubuntu/Debian
-sudo apt install rdma-core libibverbs-dev librdmacm-dev libnuma-dev
+# Ubuntu: UCX build prerequisites
+sudo apt install make gcc g++ patchelf wget \
+    rdma-core libibverbs-dev librdmacm-dev libnuma-dev
 
-# RHEL/CentOS
-sudo yum install rdma-core-devel libibverbs-devel librdmacm-devel numactl-devel
+pip install --no-binary amd-libucx amd-libucx --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
+```
+
+When you install `amd-hipucxx` from AMD PyPI, `amd-libucx` is pulled in as a
+dependency automatically, so most users need no separate UCX install. For a
+manual C++ build, point CMake at the packaged UCX by setting `ucx_DIR` (see the
+[build guide](https://rocm.docs.amd.com/projects/hip-ucxx/en/latest/install/build.html)):
+
+```bash
+export ucx_DIR="$(python -c 'import libucx, os; print(os.path.join(libucx.get_lib(), "cmake", "ucx"))')"
+```
+
+**Alternative: build UCX from source.** Install the RDMA/InfiniBand system
+packages first:
+
+```bash
+# Ubuntu
+sudo apt install rdma-core libibverbs-dev librdmacm-dev libnuma-dev
 ```
 
 Then build UCX with ROCm support:
 
 ```bash
-export UCX_VERSION=1.18.0
+export UCX_VERSION=1.18.1
 wget -q "https://github.com/openucx/ucx/releases/download/v${UCX_VERSION}/ucx-${UCX_VERSION}.tar.gz"
 tar xzf "ucx-${UCX_VERSION}.tar.gz"
 mkdir -p "ucx-${UCX_VERSION}/build"
@@ -90,6 +108,22 @@ cd "ucx-${UCX_VERSION}/build"
 make -j$(nproc)
 sudo make install
 ```
+
+**Using a custom UCX build with the Python packages.** The hip-ucxx Python
+modules load the UCX shipped by `amd-libucx` when that package is present (via
+`import libucx; libucx.load_library()`), which would shadow a custom build. To
+use your own UCX instead, keep `amd-libucx` out of the environment, then point
+the dynamic loader at your install. Either install the wheels without pulling in
+the dependency (`pip install --no-deps ...`, installing the remaining
+dependencies yourself), or uninstall it from an existing environment:
+
+```bash
+pip uninstall amd-libucx
+export LD_LIBRARY_PATH=/usr/lib:${LD_LIBRARY_PATH}   # adjust to your UCX --prefix
+```
+
+With `amd-libucx` absent, the modules fall back to the UCX found on the loader's
+search path (`LD_LIBRARY_PATH` / default paths), so they use your custom build.
 
 [hipMM](https://github.com/AMD-Ecosystem/hipMM) is highly recommended for GPU-to-GPU
 direct transfers.

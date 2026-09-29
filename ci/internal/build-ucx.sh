@@ -3,8 +3,13 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 Advanced Micro Devices, Inc.
 # SPDX-License-Identifier: MIT
 
-# Build OpenUCX with ROCm support, package it as an RPM for the tester image,
-# and install it in the current container for the C++ / wheel builds that follow.
+# Build OpenUCX with ROCm support and package it as an RPM.
+#
+# The RPM is no longer installed here, and the C++ / wheel builds that follow
+# source UCX from the amd-libucx package (compiled from the amd-ucx-sdist sdist)
+# instead. The RPM is still built and published as an artifact because a
+# downstream project still consumes ucx-*.rpm; keep producing it until that
+# dependency is removed, after which this script can drop the RPM packaging too.
 #
 # Required environment variables:
 #   BUILD_ARTIFACTS_DIR
@@ -73,5 +78,3 @@ rpmbuild -bb /tmp/ucx.spec \
     --buildroot /tmp/ucx-buildroot
 
 cp /tmp/rpmbuild/RPMS/x86_64/ucx-*.rpm "${BUILD_ARTIFACTS_DIR}"
-UCX_RPM=$(find "${BUILD_ARTIFACTS_DIR}" -name "ucx-*.rpm")
-rpm -ivh --force "${UCX_RPM}"

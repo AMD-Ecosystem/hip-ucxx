@@ -29,7 +29,7 @@ Building hip-ucxx uses the following tools and dependencies.
    * - `cmake <https://cmake.org/>`_
      - ≥ 3.30.4
    * - `UCX <https://github.com/openucx/ucx>`_
-     - ≥ 1.18.0 (must be built with ROCm support; see :ref:`building-ucx`)
+     - ≥ 1.18.0 (must be built with ROCm support; install the ``amd-libucx`` package or build from source, see :ref:`building-ucx`)
    * - `hipMM (RMM) <https://github.com/AMD-Ecosystem/hipMM>`_
      - 4.0.0 (required for GPU-to-GPU direct transfers)
    * - **Optional Dependencies**
@@ -65,22 +65,52 @@ Building UCX with ROCm support
 ==============================
 
 hip-ucxx requires UCX built with ROCm support for GPU-direct communication.
-Prebuilt system packages typically do not include this support, so building from
-source is recommended.
+Prebuilt system packages typically do not include this support.
 
-Install the required system packages for RDMA/InfiniBand support:
+.. _building-ucx-amd-libucx:
 
-**Ubuntu/Debian:**
+Recommended: the ``amd-libucx`` package
+---------------------------------------
+
+The simplest way to obtain a ROCm-enabled UCX is the ``amd-libucx`` package. It
+is distributed as a source distribution and compiles UCX with ROCm support at
+install time, so it always matches the target machine's ROCm stack:
+
+.. code-block:: bash
+
+   # Ubuntu: UCX build prerequisites
+   sudo apt install make gcc g++ patchelf wget \
+       rdma-core libibverbs-dev librdmacm-dev libnuma-dev
+
+   pip install --no-binary amd-libucx amd-libucx \
+       --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
+
+When you install ``amd-hipucxx`` from AMD PyPI (see :ref:`installing-ucxx`),
+``amd-libucx`` is pulled in as a dependency automatically, so end users normally
+need no separate UCX step.
+
+For a manual C++ build against the packaged UCX, point CMake at its config
+directory with ``ucx_DIR`` before invoking ``./build.hip.sh`` or CMake:
+
+.. code-block:: bash
+
+   export ucx_DIR="$(python -c 'import libucx, os; print(os.path.join(libucx.get_lib(), "cmake", "ucx"))')"
+
+``rapids_find_package(ucx)`` honors ``ucx_DIR`` (and ``CMAKE_PREFIX_PATH``), so a
+UCX installed on the default search path is also discovered without
+this variable.
+
+Alternative: build UCX from source
+----------------------------------
+
+If you prefer to build UCX yourself, install the required system packages for
+RDMA/InfiniBand support, if needed:
+
+**Ubuntu:**
 
 .. code-block:: bash
 
    sudo apt install rdma-core libibverbs-dev librdmacm-dev libnuma-dev
-
-**RHEL/CentOS:**
-
-.. code-block:: bash
-
-   sudo yum install rdma-core-devel libibverbs-devel librdmacm-devel numactl-devel
 
 Download and extract the UCX source (replace ``1.18.0`` with the desired version):
 
@@ -113,6 +143,26 @@ Key configure flags:
 - ``--enable-mt`` -- multi-threading support (required for hip-ucxx)
 
 See `UCX documentation <https://openucx.readthedocs.io/>`_ for additional configuration options.
+
+Using a custom UCX build with the Python packages
+-------------------------------------------------
+
+The hip-ucxx Python modules load the UCX shipped by ``amd-libucx`` when that
+package is present (via ``import libucx; libucx.load_library()``), which would
+shadow a custom build. To use your own UCX instead, keep ``amd-libucx`` out of
+the environment, then point the dynamic loader at your install. Either install
+the wheels without pulling in the dependency (``pip install --no-deps ...``,
+installing the remaining dependencies yourself), or uninstall it from an
+existing environment:
+
+.. code-block:: bash
+
+   pip uninstall amd-libucx
+   export LD_LIBRARY_PATH=/usr/lib:${LD_LIBRARY_PATH}   # adjust to your UCX --prefix
+
+With ``amd-libucx`` absent, the modules fall back to the UCX found on the
+loader's search path (``LD_LIBRARY_PATH`` / default paths), so they use your
+custom build.
 
 Build and run scripts
 =====================
@@ -211,6 +261,13 @@ For more fine-grained control over the build, invoke CMake directly:
          -DBUILD_EXAMPLES=ON
    ninja
    ninja install
+
+.. note::
+
+   If UCX comes from the ``amd-libucx`` package rather than a system install,
+   export ``ucx_DIR`` (see :ref:`building-ucx-amd-libucx`) or pass
+   ``-Ducx_DIR=...`` on the ``cmake`` line so ``rapids_find_package(ucx)``
+   resolves it.
 
 CMake build options:
 

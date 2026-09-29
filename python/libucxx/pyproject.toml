@@ -30,6 +30,7 @@ classifiers = [
 ]
 dependencies = [
     "amd-hipmm==5.0.*",
+    "amd-libucx==1.18.*",
 ]
 
 [project.entry-points."cmake.prefix"]
