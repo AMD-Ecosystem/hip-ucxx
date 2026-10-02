@@ -21,6 +21,18 @@ if ! activate_hipucxx_dev_env; then
     . "${INSTALL_DIR}/venv/hipucxx_dev/bin/activate"
 fi
 
+# hipUCXX sources UCX from the amd-libucx package (site-packages/libucx/lib64),
+# not a system path. The Python tests load it via libucx.load_library(), but the
+# standalone C++ test/example/benchmark binaries rely on the dynamic loader, so
+# make libucp.so.0 and friends discoverable. Works for both the conda and venv
+# activation paths since it uses the active interpreter's installed package.
+libucx_lib="$(python -c 'import libucx; print(libucx.get_lib())' 2>/dev/null || true)"
+if [ -n "${libucx_lib}" ]; then
+    export LD_LIBRARY_PATH="${libucx_lib}:${LD_LIBRARY_PATH:-}"
+else
+    echo "WARNING: could not resolve amd-libucx lib dir (import libucx failed); C++ binaries may fail to find libucp.so.*" >&2
+fi
+
 src_dir="${SRC_DIR:-/src}/${PROJECT_ID}"
 build_dir="${BUILD_DIR}/${PROJECT_ID}"
 
