@@ -21,11 +21,18 @@ if ! activate_hipucxx_dev_env; then
     . "${INSTALL_DIR}/venv/hipucxx_dev/bin/activate"
 fi
 
-# hipUCXX sources UCX from the amd-libucx package (site-packages/libucx/lib64),
-# not a system path. The Python tests load it via libucx.load_library(), but the
-# standalone C++ test/example/benchmark binaries rely on the dynamic loader, so
-# make libucp.so.0 and friends discoverable. Works for both the conda and venv
-# activation paths since it uses the active interpreter's installed package.
+# The C++ binaries need UCX from amd-libucx on the loader path, but amd-libucx
+# is sdist-only and not pre-installed in the tester (the Python suite compiles
+# it later via the amd_libhipucxx wheel). Install it here (--no-binary builds
+# ROCm UCX; ROCM_UCX_VERSION picks the release) using the same --find-links as
+# test-wheels.sh so the sdist builds once and the later install reuses the
+# cached wheel, then put its lib dir on LD_LIBRARY_PATH.
+libucx_find_links=()
+if [ -n "${BUILD_ARTIFACTS_DIR:-}" ]; then
+    libucx_find_links+=(--find-links "${BUILD_ARTIFACTS_DIR}")
+fi
+pip install --no-binary amd-libucx "${libucx_find_links[@]}" "amd-libucx==1.18.*"
+
 libucx_lib="$(python -c 'import libucx; print(libucx.get_lib())' 2>/dev/null || true)"
 if [ -n "${libucx_lib}" ]; then
     export LD_LIBRARY_PATH="${libucx_lib}:${LD_LIBRARY_PATH:-}"
