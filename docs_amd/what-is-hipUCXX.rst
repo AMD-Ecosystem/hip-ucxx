@@ -52,7 +52,7 @@ The following table summarizes the C++ modules available in hip-ucxx:
      - Description
 
    * - :doc:`Core <./reference/cpp_api/core>`
-     - `cpp/include/ucxx/context.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/context.h>`_, `worker.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/worker.h>`_, `address.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/address.h>`_, `config.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/config.h>`_, `component.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/component.h>`_
+     - `cpp/include/ucxx/context.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/context.h>`_, `worker.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/worker.h>`_, `address.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/address.h>`_, `config.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/config.h>`_, `component.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/component.h>`_
      - UCP context, worker, and address management. Configuration handling, base component class, and logging.
 
    * - :doc:`Communication <./reference/cpp_api/communication>`
