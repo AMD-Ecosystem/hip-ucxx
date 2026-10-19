@@ -64,7 +64,7 @@ The following table summarizes the C++ modules available in hip-ucxx:
      - Non-blocking send/receive operations via tag, stream, active message, and remote memory access APIs. Also includes flush and endpoint close requests.
 
    * - :doc:`Memory <./reference/cpp_api/memory>`
-     - `cpp/include/ucxx/buffer.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/buffer.h>`_, `memory_handle.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/memory_handle.h>`_, `remote_key.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/remote_key.h>`_
+     - `cpp/include/ucxx/buffer.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/buffer.h>`_, `memory_handle.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/memory_handle.h>`_, `remote_key.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/remote_key.h>`_
      - Buffer types (host and hipMM device buffers), memory handle registration for RMA, and remote key management.
 
    * - :doc:`Async <./reference/cpp_api/async>`
