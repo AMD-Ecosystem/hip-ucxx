@@ -72,5 +72,5 @@ The following table summarizes the C++ modules available in hip-ucxx:
      - Future-based asynchronous completion tracking, request notification, delayed request submission, and worker progress thread management.
 
    * - :doc:`Utilities <./reference/cpp_api/utils>`
-     - `cpp/include/ucxx/typedefs.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/typedefs.h>`_, `header.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/header.h>`_, `exception.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/exception.h>`_
+     - `cpp/include/ucxx/typedefs.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/typedefs.h>`_, `header.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/header.h>`_, `exception.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/exception.h>`_
      - Type definitions, multi-buffer header metadata, exception handling, and miscellaneous helper utilities (socket address, file descriptor, UCX wrappers).
