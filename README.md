@@ -91,7 +91,7 @@ make -j$(nproc)
 sudo make install
 ```
 
-[hipMM](https://github.com/datascience/hipMM) is highly recommended for GPU-to-GPU
+[hipMM](https://github.com/AMD-Ecosystem/hipMM) is highly recommended for GPU-to-GPU
 direct transfers.
 
 For detailed dependency information and build options, see the
