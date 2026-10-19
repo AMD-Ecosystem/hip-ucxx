@@ -56,11 +56,11 @@ The following table summarizes the C++ modules available in hip-ucxx:
      - UCP context, worker, and address management. Configuration handling, base component class, and logging.
 
    * - :doc:`Communication <./reference/cpp_api/communication>`
-     - `cpp/include/ucxx/endpoint.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/endpoint.h>`_, `listener.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/listener.h>`_
+     - `cpp/include/ucxx/endpoint.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/endpoint.h>`_, `listener.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/listener.h>`_
      - UCP endpoint and listener management for establishing and accepting connections.
 
    * - :doc:`Request <./reference/cpp_api/request>`
-     - `cpp/include/ucxx/request_tag.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/request_tag.h>`_, `request_stream.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/request_stream.h>`_, `request_am.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/request_am.h>`_, `request_mem.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/request_mem.h>`_
+     - `cpp/include/ucxx/request_tag.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/request_tag.h>`_, `request_stream.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/request_stream.h>`_, `request_am.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/request_am.h>`_, `request_mem.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/request_mem.h>`_
      - Non-blocking send/receive operations via tag, stream, active message, and remote memory access APIs. Also includes flush and endpoint close requests.
 
    * - :doc:`Memory <./reference/cpp_api/memory>`
