@@ -68,7 +68,7 @@ The following table summarizes the C++ modules available in hip-ucxx:
      - Buffer types (host and hipMM device buffers), memory handle registration for RMA, and remote key management.
 
    * - :doc:`Async <./reference/cpp_api/async>`
-     - `cpp/include/ucxx/future.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/future.h>`_, `notifier.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/notifier.h>`_, `delayed_submission.h <https://github.com/datascience/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/delayed_submission.h>`_
+     - `cpp/include/ucxx/future.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/future.h>`_, `notifier.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/notifier.h>`_, `delayed_submission.h <https://github.com/AMD-Ecosystem/hip-ucxx/blob/release/rocmds-26.03/cpp/include/ucxx/delayed_submission.h>`_
      - Future-based asynchronous completion tracking, request notification, delayed request submission, and worker progress thread management.
 
    * - :doc:`Utilities <./reference/cpp_api/utils>`
