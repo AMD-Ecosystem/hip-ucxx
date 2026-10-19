@@ -17,7 +17,7 @@ to the :doc:`ROCm <rocm:index>`/:doc:`HIP <hip:index>` stack. It offers both a m
 for systems developers and Python bindings with full async support for rapid prototyping and
 distributed computing workflows. For more information, see :doc:`What is hip-ucxx? <what-is-hipUCXX>`
 
-The hip-ucxx code is open and hosted at `https://github.com/datascience/hip-ucxx <https://github.com/datascience/hip-ucxx>`_.
+The hip-ucxx code is open and hosted at `https://github.com/AMD-Ecosystem/hip-ucxx <https://github.com/AMD-Ecosystem/hip-ucxx>`_.
 
 .. grid:: 2
   :gutter: 3
