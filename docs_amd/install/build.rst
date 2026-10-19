@@ -9,7 +9,7 @@ Building hip-ucxx from source
 *****************************
 
 The following instructions provide steps to build and test hip-ucxx from source files provided in the
-https://github.com/datascience/hip-ucxx repository. To install hip-ucxx for end users,
+https://github.com/AMD-Ecosystem/hip-ucxx repository. To install hip-ucxx for end users,
 see :ref:`installing-ucxx`.
 
 Requirements and dependencies
