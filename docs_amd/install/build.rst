@@ -30,7 +30,7 @@ Building hip-ucxx uses the following tools and dependencies.
      - ≥ 3.30.4
    * - `UCX <https://github.com/openucx/ucx>`_
      - ≥ 1.18.0 (must be built with ROCm support; see :ref:`building-ucx`)
-   * - `hipMM (RMM) <https://github.com/datascience/hipMM>`_
+   * - `hipMM (RMM) <https://github.com/AMD-Ecosystem/hipMM>`_
      - 4.0.0 (required for GPU-to-GPU direct transfers)
    * - **Optional Dependencies**
      -
