@@ -24,7 +24,7 @@ all_article_info_author = ""
 external_projects_current_project = "hipUCXX"
 
 html_context = {
-    "docs_header_version": "26.09"
+    "docs_header_version": "26.10"
 }
 html_theme = "rocm_docs_theme"
 html_theme_options = {
