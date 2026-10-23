@@ -4,7 +4,7 @@ hip-ucxx is AMD's port of NVIDIA's UCXX: an object-oriented C++ interface for
 UCX with native Python bindings, for GPU-direct communication on AMD GPUs via
 the HIP/ROCm platform. It is part of the AMD Data Science ecosystem.
 
-## [Release Version 0.2.0 / AMD Data Science 26.09]
+## [Release Version 0.2.0 / AMD Data Science 26.10]
 
 ### Features
 - Updated to upstream ucxx 0.50 (RAPIDS 26.06), bringing in its new features and bug fixes.
