@@ -56,7 +56,7 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/AMD-AIOSS/hip-ucxx"
+Homepage = "https://github.com/AMD-Ecosystem/hip-ucxx"
 
 [tool.coverage.run]
 disable_warnings = [
