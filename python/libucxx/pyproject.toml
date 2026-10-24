@@ -37,7 +37,7 @@ dependencies = [
 libucxx = "libucxx"
 
 [project.urls]
-Homepage = "https://github.com/AMD-Ecosystem/hip-ucxx"
+Homepage = "https://github.com/AMD-AIOSS/hip-ucxx"
 Documentation = "https://rocm.docs.amd.com/projects/hip-ucxx/en/latest/"
 
 [tool.scikit-build]
