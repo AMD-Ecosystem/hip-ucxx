@@ -1,49 +1,71 @@
-# UCX Communication Module for Distributed
+# hip-ucxx Communication Backend for Dask Distributed
 
-This is the UCX communication backend for Dask Distributed, providing high-performance communication capabilities using the UCX (Unified Communication X) framework. It enables efficient GPU-to-GPU communication via NVLink (CUDA IPC), InfiniBand support, and various other high-speed interconnects.
+`amd-distributed-hipucxx` is the UCX-based communication backend for
+[Dask Distributed](https://distributed.dask.org/), providing high-performance,
+GPU-direct communication on AMD GPUs using HIP/ROCm. It enables efficient
+GPU-to-GPU transfers over ROCm-IPC/XGMI, InfiniBand, shared memory, and TCP.
+
+It is part of [hip-ucxx](https://github.com/AMD-Ecosystem/hip-ucxx), derived from
+the [UCXX](https://github.com/rapidsai/ucxx) project by NVIDIA Corporation, and
+belongs to the [AMD Data Science](https://github.com/AMD-Ecosystem/datascience)
+ecosystem. The Python module is imported as `distributed_ucxx`.
+
+For full documentation, see the
+[hip-ucxx documentation](https://rocm.docs.amd.com/projects/hip-ucxx/en/latest/).
 
 ## Installation
 
-This package is typically installed as part of the UCXX project build process. It can also be installed separately via conda-forge:
+If you have the hip-ucxx source repository, build and install this package with
+the provided `build.hip.sh` script. Otherwise, install the pre-built wheel
+directly from AMD PyPI:
 
 ```bash
-mamba install -c conda-forge distributed-ucxx
+pip install amd-distributed-hipucxx --extra-index-url=https://pypi.amd.com/rocm-10.0.0/simple/
 ```
 
-Or via PyPI (requires selection of CUDA version):
-
-```bash
-pip install distributed-ucxx-cu13  # For CUDA 13.x
-pip install distributed-ucxx-cu12  # For CUDA 12.x
-```
+Installing `amd-distributed-hipucxx` pulls in `amd-hipucxx` (and, transitively, a
+ROCm-enabled `amd-libucx`). Adjust the `rocm-10.0.0` index to match your ROCm
+version. See the
+[installation guide](https://rocm.docs.amd.com/projects/hip-ucxx/en/latest/install/install.html)
+for details.
 
 ## Configuration
 
-This package provides its own configuration system that replaces the UCX configuration previously found in the main Distributed package. Configuration can be provided via:
+This package provides its own configuration namespace (`distributed-ucxx`).
+Configuration can be supplied via:
 
-1. **YAML configuration files**: `distributed-ucxx.yaml`
-2. **Environment variables**: Using the `DASK_DISTRIBUTED_UCXX_` prefix
-3. **Programmatic configuration**: Using Dask's configuration system
+1. **YAML files**: `distributed-ucxx.yaml`
+2. **Environment variables**: using the `DASK_DISTRIBUTED_UCXX__` prefix
+3. **Programmatically**: via Dask's configuration system
 
-### Configuration Schema
+The schema for the YAML file is defined in `distributed_ucxx/distributed-ucxx-schema.yaml`,
+available in the source repository.
 
-The configuration schema is defined in [`distributed-ucxx-schema.yaml`](distributed_ucxx/distributed-ucxx-schema.yaml) and supports various options:
+### Transports and options
 
-- UCX transport configuration: `tcp`, `nvlink`, `infiniband`, `cuda-copy`, etc.
-- RMM configuration: `rmm.pool-size`
-- Advanced options: `multi-buffer`, `environment`
+Some common options are:
 
-### Example Configuration
+- `tcp` — enable TCP over UCX.
+- `rocm-copy` — enable ROCm copy support over UCX (GPU memory over any transport,
+  including TCP). The AMD analogue of `cuda-copy`.
+- `rocm-ipc` — enable UCX over ROCm-IPC/XGMI for direct GPU-to-GPU transfers;
+  implies `tcp=true`. The AMD analogue of `nvlink`.
+- `infiniband` — enable UCX over InfiniBand; implies `tcp=true`.
+- `multi-buffer` — enable the multi-buffer send/recv interface for many small
+  messages.
+- `environment` — set arbitrary UCX environment variables (`some-option: value`
+  becomes `UCX_SOME_OPTION=value`; run `ucx_info -f` for the full list).
+- `rmm.pool-size` — [hipMM](https://github.com/AMD-Ecosystem/hipMM) memory-pool
+  size for GPU allocations (e.g. `"1GB"`).
 
-New schema:
+### Example (YAML)
 
 ```yaml
 distributed-ucxx:
   tcp: true
-  nvlink: true
+  rocm-ipc: true       # direct GPU-to-GPU over ROCm-IPC/XGMI
+  rocm-copy: true
   infiniband: false
-  cuda-copy: true
-  create-cuda-context: true
   multi-buffer: false
   environment:
     log-level: "info"
@@ -51,76 +73,39 @@ distributed-ucxx:
     pool-size: "1GB"
 ```
 
-Legacy schema (may be removed in the future):
-
-```yaml
-distributed:
-  comm:
-    ucx:
-      tcp: true
-      nvlink: true
-      infiniband: false
-      cuda-copy: true
-      create-cuda-context: true
-      multi-buffer: false
-      environment:
-        log-level: "info"
-      rmm:
-        pool-size: "1GB"
-```
-
-### Environment Variables
-
-New schema:
+### Environment variables
 
 ```bash
 export DASK_DISTRIBUTED_UCXX__TCP=true
-export DASK_DISTRIBUTED_UCXX__NVLINK=true
+export DASK_DISTRIBUTED_UCXX__ROCM_IPC=true
+export DASK_DISTRIBUTED_UCXX__ROCM_COPY=true
 export DASK_DISTRIBUTED_UCXX__RMM__POOL_SIZE=1GB
 ```
 
-Legacy schema (may be removed in the future):
+Nested keys use `__`; hyphens become underscores and names are uppercased, so
+`distributed-ucxx.rocm-ipc` maps to `DASK_DISTRIBUTED_UCXX__ROCM_IPC`.
 
-```bash
-export DASK_DISTRIBUTED__COMM__UCX__TCP=true
-export DASK_DISTRIBUTED__COMM__UCX__NVLINK=true
-export DASK_DISTRIBUTED__RMM__POOL_SIZE=1GB
-```
-
-### Python Configuration
-
-New schema:
+### Python
 
 ```python
 import dask
 
 dask.config.set({
     "distributed-ucxx.tcp": True,
-    "distributed-ucxx.nvlink": True,
-    "distributed-ucxx.rmm.pool-size": "1GB"
-})
-```
-
-Legacy schema (may be removed in the future):
-
-```python
-import dask
-
-dask.config.set({
-    "distributed.comm.ucx.tcp": True,
-    "distributed.comm.ucx.nvlink": True,
-    "distributed.rmm.pool-size": "1GB"
+    "distributed-ucxx.rocm-ipc": True,
+    "distributed-ucxx.rmm.pool-size": "1GB",
 })
 ```
 
 ## Usage
 
-The package automatically registers itself as a communication backend for Distributed using the entry point `ucxx`. Once installed, you can use it by specifying the protocol:
+The package registers itself as a Distributed communication backend on install,
+under both the `ucxx` and `ucx` protocol prefixes. Specify the protocol when
+connecting:
 
 ```python
 from distributed import Client
 
-# Connect using UCXX protocol
 client = Client("ucxx://scheduler-address:8786")
 ```
 
@@ -131,17 +116,18 @@ dask scheduler --protocol ucxx
 dask worker ucxx://scheduler-address:8786
 ```
 
-## Migration from Distributed
-
-If you're migrating from the legacy UCX configuration in the main Distributed package, update your configuration keys:
-
-- `distributed.comm.ucx.*` is now `distributed-ucxx.*`
-- `distributed.rmm.pool-size` is now `distributed-ucxx.rmm.pool-size`
-
-The old configuration schema is still valid for convenience, but may be removed in a future version.
+With [dask-hip](https://github.com/AMD-AIOSS/dask-hip)'s
+`LocalCUDACluster`, select it via `protocol="ucxx"`.
 
 ## See Also
 
-- [UCXX Project](https://github.com/rapidsai/ucxx)
+- [hip-ucxx documentation](https://rocm.docs.amd.com/projects/hip-ucxx/en/latest/)
+- [hip-ucxx on GitHub](https://github.com/AMD-Ecosystem/hip-ucxx)
 - [Dask Distributed Documentation](https://distributed.dask.org/)
 - [UCX Project Documentation](https://openucx.readthedocs.io/en/master/index.html)
+
+## License
+
+hip-ucxx is licensed under a combination of the BSD 3-Clause License (for code
+derived from NVIDIA UCXX) and the MIT License (for AMD additions). See the
+`LICENSE` and `NOTICE.txt` files for the full license texts.

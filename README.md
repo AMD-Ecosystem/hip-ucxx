@@ -206,4 +206,4 @@ UCXPY_LOG_LEVEL=DEBUG UCXX_LOG_LEVEL=TRACE_REQ UCX_LOG_LEVEL=DATA
 
 hip-ucxx is licensed under a combination of the BSD 3-Clause License (for code
 derived from NVIDIA UCXX) and the MIT License (for AMD additions). See
-[LICENSES/](LICENSES/) for the full license texts.
+[LICENSE](LICENSE) and [NOTICE.txt](NOTICE.txt) for the full license texts.
