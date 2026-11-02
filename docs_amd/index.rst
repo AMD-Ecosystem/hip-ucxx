@@ -8,7 +8,7 @@
 hip-ucxx documentation
 ********************************************************************
 
-hip-ucxx is a C++ wrapper library around `UCX <https://www.openucx.org/>`_ (Unified Communication X),
+hip-ucxx is a C++ wrapper library around `UCX <https://openucx.readthedocs.io/en/master/>`_ (Unified Communication X),
 providing a modern object-oriented API for high-performance inter-process and inter-node communication
 on AMD GPUs. It is part of the AMD Data Science toolkit, an open-source software
 collection for high-performance data science applications.

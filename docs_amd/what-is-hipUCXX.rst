@@ -8,7 +8,7 @@
 What is hip-ucxx?
 *****************
 
-UCXX is a C++ wrapper library around `UCX <https://www.openucx.org/>`_ (Unified Communication X),
+UCXX is a C++ wrapper library around `UCX <https://openucx.readthedocs.io/en/master/>`_ (Unified Communication X),
 providing a modern object-oriented API for high-performance inter-process and inter-node
 communication. UCX itself is a low-level C library for point-to-point networking that supports a
 wide range of transports (InfiniBand, RoCE, shared memory, TCP, and more). UCXX adds C++
