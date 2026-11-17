@@ -18,7 +18,7 @@ Requirements
 See :ref:`system-requirements` for information related to supported operating systems, ROCm versions,
 and AMD GPUs before installing hip-ucxx.
 
-hip-ucxx also requires a working installation of `UCX <https://www.openucx.org/>`_
+hip-ucxx also requires a working installation of `UCX <https://openucx.readthedocs.io/en/master/>`_
 (version 1.18.0 or later) built with ROCm support. Installing hip-ucxx from AMD
 PyPI as described below pulls in the ``amd-libucx`` package automatically, which
 compiles a ROCm-enabled UCX at install time, so no separate UCX step is normally
